@@ -10,7 +10,7 @@ const Home = () => {
   };
 
   return (
-    <div>
+    <div className="w-full">
       <h1>Welcome to the Attendance Management System</h1>
       {isAuthenticated ? (
         <div>
