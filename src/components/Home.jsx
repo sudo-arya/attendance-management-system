@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import Spline from "@splinetool/react-spline";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+
+// New component to list available classes
+const ClassList = ({ classes }) => {
+  return (
+    <div className="mt-8">
+      <h3 className="text-lg font-medium mb-4">Available Classes:</h3>
+      <ul>
+        {classes.map((className, index) => (
+          <li key={index} className="text-gray-700">
+            {className}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
 const Home = () => {
   const { isAuthenticated, user, login } = useKindeAuth();
@@ -13,7 +29,8 @@ const Home = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
-
+  const [refresh, setRefresh] = useState(false);
+  const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState("");
   const [uniqueValues, setUniqueValues] = useState({
     section: [],
@@ -23,11 +40,27 @@ const Home = () => {
     subject: [],
   });
   const [error, setError] = useState(null);
+  const [classes, setClasses] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   useEffect(() => {
-    // Fetch unique values when component mounts
     fetchUniqueValues();
   }, []);
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchClassesByEmail(user.email);
+    }
+  }, [user?.email, refresh]); // Add refresh as a dependency to re-fetch classes
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   const fetchUniqueValues = async () => {
     try {
@@ -39,6 +72,66 @@ const Home = () => {
       console.error("Error fetching unique values:", error);
     }
   };
+
+  const fetchClassesByEmail = async (email) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/classes-by-email?email=${email}`
+      );
+      setClasses(response.data.classes);
+      setError(null);
+    } catch (error) {
+      setError("Failed to fetch classes. Please try again later.");
+      console.error("Error fetching classes:", error);
+    }
+  };
+
+  const ClassList = ({ classes, onDeleteClass }) => {
+    return (
+      <div className="grid grid-cols-1 gap-1">
+        {classes.map((className, index) => {
+          const [course, shift, year, section, subject] = className.split("_");
+          const shiftLabel = shift === "M" ? "Morning" : "Evening";
+          return (
+            <div
+              key={index}
+              className="relative bg-white rounded-lg shadow-md p-4 mb-4"
+              style={{
+                backgroundColor: "#F3F4F6",
+                maxHeight: "150px",
+              }}
+            >
+              <p className="font-bold text-lg mb-2">Subject: {subject}</p>
+              <p>Course: {course}</p>
+              <p>Section: {section}</p>
+              <p>Shift: {shiftLabel}</p>
+              <p>Year: {year}</p>
+              <button
+                onClick={() => onDeleteClass(className)}
+                className="absolute rounded-lg top-0 right-0 px-3 py-1 bg-red-500 text-white hover:bg-red-700 h-full w-32 flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
 
   const handleCreateClass = async () => {
     if (
@@ -52,38 +145,48 @@ const Home = () => {
       return;
     }
 
+    setIsLoading(true);
+
     const className = `${selectedCourse}_${selectedShift}_${selectedYear}_${selectedSection}_${selectedSubject}`;
     const payload = {
       className,
-      email: user.email, // Use user's email from useKindeAuth
+      email: user.email,
     };
 
-    console.log("Payload:", payload);
-
     try {
-      const response = await axios.post(
-        "http://localhost:5000/create-class",
-        payload
-      );
+      await axios.post("http://localhost:5000/create-class", payload);
       setToastMessage("Class created successfully!");
       setShowModal(false);
+      setSelectedCourse("");
+      setSelectedShift("");
+      setSelectedYear("");
+      setSelectedSection("");
+      setSelectedSubject("");
+      setRefresh((prev) => !prev); // Trigger a refresh to fetch updated classes
     } catch (error) {
       console.error("Error creating class:", error);
       setToastMessage("Failed to create class. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-
-
-  useEffect(() => {
-    if (toastMessage) {
-      const timer = setTimeout(() => {
-        setToastMessage("");
-      }, 3000); // Auto-hide after 3 seconds
-
-      return () => clearTimeout(timer); // Clear timeout if the component unmounts
+  const handleDeleteClass = async (className) => {
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:5000/delete-class", {
+        className,
+        email: user.email,
+      });
+      setToastMessage("Class deleted successfully!");
+      setRefresh((prev) => !prev); // Trigger a refresh to fetch updated classes
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      setToastMessage("Failed to delete class. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  }, [toastMessage]);
+  };
 
   const handleAddClass = () => {
     setShowModal(true);
@@ -95,13 +198,41 @@ const Home = () => {
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center relative">
-      {/* Add the toast message rendering here */}
       {toastMessage && <div className="toast-top">{toastMessage}</div>}
-
+      {isLoading && ( // Display loading component when isLoading is true
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
+        </div>
+      )}
       {isAuthenticated ? (
-        <div>
-          <p>Welcome, {user?.given_name}</p>
-          <button onClick={handleAddClass}>Add Class</button>
+        <div className="flex w-full">
+          <div className="hidden lg:flex lg:w-1/2 p-4 flex-col space-y-4">
+            <img src={user?.picture} className="rounded-full w-32 h-32" />
+            <p className="text-4xl font-normal">
+              Welcome, <span className="font-medium">{user?.given_name}</span>
+            </p>
+            <p className="text-lg font-medium">
+              Full Name: {user?.given_name} {user?.family_name}
+            </p>
+            <p className="text-lg font-medium">Email: {user?.email}</p>
+          </div>
+          <div className="w-1/2 p-4">
+            <button
+              onClick={handleAddClass}
+              className="bg-blue-500 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
+            >
+              Add Class
+            </button>
+            {isAuthenticated && (
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-5">Available Classes:</h3>
+                <ClassList
+                  classes={classes}
+                  onDeleteClass={handleDeleteClass}
+                />
+              </div>
+            )}
+          </div>
           {showModal && (
             <div className="fixed z-10 inset-0 overflow-y-auto">
               <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -244,7 +375,10 @@ const Home = () => {
           />
           <div className="absolute top-50 right-0 m-4 flex flex-col items-end">
             <Link to="/view-attendance">
-              <button className="bg-blue-500 w-100 h-1/2 hover:bg-blue-600 text-white font-semibold text-lg py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300">
+              <button
+                className="bg-blue-500 w-100 h-1/2 hover:bg-blue-600 text-white font-semibold text-lg py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-
+              300"
+              >
                 View Attendance
               </button>
             </Link>
