@@ -8,6 +8,9 @@ const port = 5000; // Or whatever port you're using for your server
 // Enable CORS middleware
 app.use(cors());
 
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
 const dbConfig = {
   host: "sql6.freesqldatabase.com",
   port: "3306",
@@ -120,6 +123,91 @@ app.get("/unique-values", (req, res) => {
       });
   });
 });
+
+// Define a new route to create a class and update class history
+// Define a new route to create a class and update class history
+app.post("/create-class", (req, res) => {
+  const { className, email } = req.body; // Destructure className and email from req.body
+
+  if (!className || !email) {
+    return res.status(400).json({ error: "className and email are required." });
+  }
+
+  // Extract course, shift, year, section, and subject from className
+  const [course, shift, year, section, subject] = className.split('_');
+
+  const tableName = `${course}_${shift}_${year}_${section}_${subject}`;
+
+  // SQL query to create a new table
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS ${tableName} (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      student_id INT NOT NULL,
+      attendance_date DATE NOT NULL,
+      status VARCHAR(10) NOT NULL
+    )
+  `;
+
+  // SQL query to insert into class_history
+  const insertHistoryQuery = `
+    INSERT INTO class_history (teacher_email, class_created)
+    VALUES (?, ?)
+  `;
+
+  // Get a connection from the pool
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting connection from pool:", err);
+      return res
+        .status(500)
+        .json({ error: "Error getting connection from pool" });
+    }
+
+    // Execute the queries in a transaction
+    connection.beginTransaction((err) => {
+      if (err) {
+        connection.release();
+        console.error("Error starting transaction:", err);
+        return res.status(500).json({ error: "Error starting transaction" });
+      }
+
+      connection.query(createTableQuery, (err) => {
+        if (err) {
+          return connection.rollback(() => {
+            connection.release();
+            console.error("Error creating table:", err);
+            return res.status(500).json({ error: "Error creating table" });
+          });
+        }
+
+        connection.query(insertHistoryQuery, [email, tableName], (err) => {
+          if (err) {
+            return connection.rollback(() => {
+              connection.release();
+              console.error("Error inserting into class_history:", err);
+              return res
+                .status(500)
+                .json({ error: "Error inserting into class_history" });
+            });
+          }
+
+          connection.commit((err) => {
+            connection.release();
+            if (err) {
+              console.error("Error committing transaction:", err);
+              return res
+                .status(500)
+                .json({ error: "Error committing transaction" });
+            }
+
+            res.status(200).json({ message: "Class created successfully" });
+          });
+        });
+      });
+    });
+  });
+});
+
 
 // Start the server
 app.listen(port, () => {

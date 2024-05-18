@@ -20,51 +20,74 @@ const Home = () => {
     shift: [],
     course: [],
     year: [],
+    subject: [],
   });
   const [error, setError] = useState(null);
-  
-    useEffect(() => {
-      // Fetch unique values when component mounts
-      fetchUniqueValues();
-    }, []);
 
-    const fetchUniqueValues = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/unique-values");
-        setUniqueValues(response.data);
-        setError(null);
-      } catch (error) {
-        setError("Failed to fetch unique values. Please try again later.");
-        console.error("Error fetching unique values:", error);
-      }
+  useEffect(() => {
+    // Fetch unique values when component mounts
+    fetchUniqueValues();
+  }, []);
+
+  const fetchUniqueValues = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/unique-values");
+      setUniqueValues(response.data);
+      setError(null);
+    } catch (error) {
+      setError("Failed to fetch unique values. Please try again later.");
+      console.error("Error fetching unique values:", error);
+    }
+  };
+
+  const handleCreateClass = async () => {
+    if (
+      !selectedCourse ||
+      !selectedShift ||
+      !selectedYear ||
+      !selectedSection ||
+      !selectedSubject
+    ) {
+      setToastMessage("Please fill in all required fields.");
+      return;
+    }
+
+    const className = `${selectedCourse}_${selectedShift}_${selectedYear}_${selectedSection}_${selectedSubject}`;
+    const payload = {
+      className,
+      email: user.email, // Use user's email from useKindeAuth
     };
 
-    const handleCreateClass = () => {
-      if (
-        !selectedCourse ||
-        !selectedShift ||
-        !selectedYear ||
-        !selectedSection ||
-        !selectedSubject
-      ) {
-        setToastMessage("Please fill in all required fields.");
-        return;
-      }
-      // Logic to create the class
-    };
+    console.log("Payload:", payload);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/create-class",
+        payload
+      );
+      setToastMessage("Class created successfully!");
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error creating class:", error);
+      setToastMessage("Failed to create class. Please try again.");
+    }
+  };
 
 
 
   useEffect(() => {
-    const navbar = document.querySelector(".navbar");
-    if (navbar) {
-      setNavbarHeight(navbar.offsetHeight);
-    }
-  }, []);
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage("");
+      }, 3000); // Auto-hide after 3 seconds
 
-const handleAddClass = () => {
-  setShowModal(true);
-};
+      return () => clearTimeout(timer); // Clear timeout if the component unmounts
+    }
+  }, [toastMessage]);
+
+  const handleAddClass = () => {
+    setShowModal(true);
+  };
 
   const closeModal = () => {
     setShowModal(false);
@@ -72,6 +95,9 @@ const handleAddClass = () => {
 
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center relative">
+      {/* Add the toast message rendering here */}
+      {toastMessage && <div className="toast-top">{toastMessage}</div>}
+
       {isAuthenticated ? (
         <div>
           <p>Welcome, {user?.given_name}</p>
@@ -185,7 +211,7 @@ const handleAddClass = () => {
                   </div>
                   <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <button
-                      onClick={closeModal}
+                      onClick={handleCreateClass}
                       type="button"
                       className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
                     >
@@ -231,7 +257,6 @@ const handleAddClass = () => {
           </div>
         </div>
       )}
-      
     </div>
   );
 };
