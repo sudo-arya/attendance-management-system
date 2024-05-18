@@ -8,6 +8,13 @@ const Home = () => {
   const { isAuthenticated, user, login } = useKindeAuth();
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedShift, setSelectedShift] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+
+  const [toastMessage, setToastMessage] = useState("");
   const [uniqueValues, setUniqueValues] = useState({
     section: [],
     shift: [],
@@ -31,6 +38,22 @@ const Home = () => {
         console.error("Error fetching unique values:", error);
       }
     };
+
+    const handleCreateClass = () => {
+      if (
+        !selectedCourse ||
+        !selectedShift ||
+        !selectedYear ||
+        !selectedSection ||
+        !selectedSubject
+      ) {
+        setToastMessage("Please fill in all required fields.");
+        return;
+      }
+      // Logic to create the class
+    };
+
+
 
   useEffect(() => {
     const navbar = document.querySelector(".navbar");
@@ -78,7 +101,12 @@ const handleAddClass = () => {
                             <label className="block text-gray-700">
                               Course
                             </label>
-                            <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select
+                              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              onChange={(e) =>
+                                setSelectedCourse(e.target.value)
+                              }
+                            >
                               <option>Select Course</option>
                               {uniqueValues.course.map((course) => (
                                 <option key={course} value={course}>
@@ -89,7 +117,10 @@ const handleAddClass = () => {
                           </div>
                           <div className="mb-4">
                             <label className="block text-gray-700">Shift</label>
-                            <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select
+                              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              onChange={(e) => setSelectedShift(e.target.value)}
+                            >
                               <option>Select Shift</option>
                               {uniqueValues.shift.map((shift) => (
                                 <option key={shift} value={shift}>
@@ -100,7 +131,10 @@ const handleAddClass = () => {
                           </div>
                           <div className="mb-4">
                             <label className="block text-gray-700">Year</label>
-                            <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select
+                              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              onChange={(e) => setSelectedYear(e.target.value)}
+                            >
                               <option>Select Year</option>
                               {uniqueValues.year.map((year) => (
                                 <option key={year} value={year}>
@@ -113,7 +147,12 @@ const handleAddClass = () => {
                             <label className="block text-gray-700">
                               Section
                             </label>
-                            <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select
+                              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              onChange={(e) =>
+                                setSelectedSection(e.target.value)
+                              }
+                            >
                               <option>Select Section</option>
                               {uniqueValues.section.map((section) => (
                                 <option key={section} value={section}>
@@ -126,9 +165,18 @@ const handleAddClass = () => {
                             <label className="block text-gray-700">
                               Subject
                             </label>
-                            <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select
+                              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              onChange={(e) =>
+                                setSelectedSubject(e.target.value)
+                              }
+                            >
                               <option>Select Subject</option>
-                              {/* Add more options as needed */}
+                              {uniqueValues.subject.map((subject) => (
+                                <option key={subject} value={subject}>
+                                  {subject}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </form>
@@ -183,6 +231,7 @@ const handleAddClass = () => {
           </div>
         </div>
       )}
+      
     </div>
   );
 };

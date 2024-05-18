@@ -80,20 +80,37 @@ app.get("/unique-values", (req, res) => {
       });
     };
 
-    // Get unique values for each column
+    // Define a function to get unique subjects from the list_of_subjects table
+    const getUniqueSubjects = () => {
+      return new Promise((resolve, reject) => {
+        connection.query(
+          `SELECT DISTINCT subject FROM list_of_subjects`,
+          (err, results) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(results.map((row) => row.subject));
+          }
+        );
+      });
+    };
+
+    // Get unique values for course, year, shift, section, and unique subjects
     Promise.all([
       getUniqueValues("section"),
       getUniqueValues("shift"),
       getUniqueValues("course"),
       getUniqueValues("year"),
+      getUniqueSubjects(),
     ])
-      .then(([sections, shifts, courses, years]) => {
+      .then(([sections, shifts, courses, years, subjects]) => {
         connection.release(); // Release the connection
         res.json({
           section: sections,
           shift: shifts,
           course: courses,
           year: years,
+          subject: subjects,
         });
       })
       .catch((err) => {
