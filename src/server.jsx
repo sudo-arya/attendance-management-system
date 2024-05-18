@@ -50,6 +50,55 @@ app.get("/data", (req, res) => {
   });
 });
 
+// Define a route to fetch unique values from the database
+app.get("/unique-values", (req, res) => {
+  // Get a connection from the pool
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting connection from pool:", err);
+      res.status(500).json({ error: "Error getting connection from pool" });
+      return;
+    }
+
+    // Define a function to get unique values for a specific column
+    const getUniqueValues = (column) => {
+      return new Promise((resolve, reject) => {
+        connection.query(
+          `SELECT DISTINCT ${column} FROM student_data`,
+          (err, results) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(results.map((row) => row[column]));
+          }
+        );
+      });
+    };
+
+    // Get unique values for each column
+    Promise.all([
+      getUniqueValues("section"),
+      getUniqueValues("shift"),
+      getUniqueValues("course"),
+      getUniqueValues("year"),
+    ])
+      .then(([sections, shifts, courses, years]) => {
+        connection.release(); // Release the connection
+        res.json({
+          section: sections,
+          shift: shifts,
+          course: courses,
+          year: years,
+        });
+      })
+      .catch((err) => {
+        connection.release(); // Release the connection
+        console.error("Error executing query:", err);
+        res.status(500).json({ error: "Error executing query" });
+      });
+  });
+});
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
