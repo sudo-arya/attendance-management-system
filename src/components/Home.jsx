@@ -5,10 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BrowserRouter as Router } from "react-router-dom";
 
-
-
-
-
 const Home = () => {
   const { isAuthenticated, user, login } = useKindeAuth();
   const [navbarHeight, setNavbarHeight] = useState(0);
@@ -18,6 +14,7 @@ const Home = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState("");
@@ -76,13 +73,11 @@ const Home = () => {
   };
 
   // Define a function to handle marking attendance
-  const handleMarkAttendance = async (className, userId, userEmail) => {
+  const handleMarkAttendance = async (className) => {
     setIsLoading(true);
     try {
-      await axios.post("http://localhost:5000/mark-attendance", {
-        className,
-        userId,
-        email: userEmail,
+      await axios.post("http://localhost:5000/selected-class", {
+        className
       });
       console.log("data sent successfully!");
       // Marking attendance successful, you can add further logic here if needed
@@ -93,7 +88,6 @@ const Home = () => {
       setIsLoading(false);
     }
   };
-
 
   const ClassList = ({ classes, onDeleteClass }) => {
     return (
@@ -114,9 +108,16 @@ const Home = () => {
                 },
               }}
               className="block"
-              onClick={() =>
-                handleMarkAttendance(className, user.id, user.email)
-              } // Pass a function reference
+              onClick={(e) => {
+                e.preventDefault(); // Prevent default link behavior
+                setIsLoading(true); // Show loading screen
+                setTimeout(() => {
+                  // Redirect after 1 second
+                  handleMarkAttendance(className);
+                  setIsLoading(false); // Hide loading screen
+                  navigate("/mark-attendance");
+                }, 550);
+              }}
             >
               <div
                 className="relative bg-white rounded-lg shadow-md p-4 mb-4 cursor-pointer"
