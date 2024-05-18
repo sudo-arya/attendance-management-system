@@ -457,6 +457,16 @@ app.post("/delete-class-internal", (req, res) => {
   });
 });
 
+// Define a new route to collect attendance information
+app.post("/mark-attendance", (req, res) => {
+  // Log the entire request body
+  console.log("Data received at /mark-attendance:", req.body);
+
+  // Send the captured data back to the frontend
+  res.status(200).json(req.body);
+});
+
+
 
 // Start the server
 app.listen(port, () => {

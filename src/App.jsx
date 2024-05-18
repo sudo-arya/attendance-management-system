@@ -7,7 +7,6 @@ import Mark from "./components/Mark";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-
 function App() {
   return (
     <div>
@@ -16,6 +15,7 @@ function App() {
         domain="https://sudoarya.kinde.com"
         redirectUri="http://localhost:3000"
         logoutUri="http://localhost:3000"
+        onRedirectCallback="http://localhost:3000"
       >
         <Navbar />
         <div className="container mx-auto p-4">
@@ -23,7 +23,7 @@ function App() {
             {""}
             <Route path="/" element={<Home />} />{" "}
             <Route path="/view-attendance" element={<View />} />{" "}
-            <Route path="/mark attendance" element={<Mark />} />{" "}
+            <Route path="/mark-attendance" element={<Mark />} />{" "}
           </Routes>
         </div>
         <Footer />

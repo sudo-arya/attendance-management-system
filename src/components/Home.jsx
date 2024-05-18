@@ -3,22 +3,11 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import Spline from "@splinetool/react-spline";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { BrowserRouter as Router } from "react-router-dom";
 
-// New component to list available classes
-const ClassList = ({ classes }) => {
-  return (
-    <div className="mt-8">
-      <h3 className="text-lg font-medium mb-4">Available Classes:</h3>
-      <ul>
-        {classes.map((className, index) => (
-          <li key={index} className="text-gray-700">
-            {className}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
+
+
+
 
 const Home = () => {
   const { isAuthenticated, user, login } = useKindeAuth();
@@ -86,52 +75,90 @@ const Home = () => {
     }
   };
 
+  // Define a function to handle marking attendance
+  const handleMarkAttendance = async (className, userId, userEmail) => {
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:5000/mark-attendance", {
+        className,
+        userId,
+        email: userEmail,
+      });
+      console.log("data sent successfully!");
+      // Marking attendance successful, you can add further logic here if needed
+    } catch (error) {
+      console.error("Error marking attendance:", error);
+      // Handle error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   const ClassList = ({ classes, onDeleteClass }) => {
     return (
       <div className="grid grid-cols-1 gap-1">
         {classes.map((className, index) => {
           const [course, shift, year, section, subject] = className.split("_");
           const shiftLabel = shift === "M" ? "Morning" : "Evening";
+
           return (
-            <div
+            <Link
               key={index}
-              className="relative bg-white rounded-lg shadow-md p-4 mb-4"
-              style={{
-                backgroundColor: "#F3F4F6",
-                maxHeight: "150px",
+              to={{
+                pathname: "/mark-attendance",
+                state: {
+                  className, // Pass the class name as state
+                  userId: user.id, // Pass the user ID for validation
+                  // You can include any other data you want to pass here
+                },
               }}
+              className="block"
+              onClick={() =>
+                handleMarkAttendance(className, user.id, user.email)
+              } // Pass a function reference
             >
-              <p className="font-bold text-lg mb-2">Subject: {subject}</p>
-              <p>Course: {course}</p>
-              <p>Section: {section}</p>
-              <p>Shift: {shiftLabel}</p>
-              <p>Year: {year}</p>
-              <button
-                onClick={() => onDeleteClass(className)}
-                className="absolute rounded-lg top-0 right-0 px-3 py-1 bg-red-500 text-white hover:bg-red-700 h-full w-32 flex items-center justify-center"
+              <div
+                className="relative bg-white rounded-lg shadow-md p-4 mb-4 cursor-pointer"
+                style={{
+                  backgroundColor: "#F3F4F6",
+                  maxHeight: "150px",
+                }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                <p className="font-bold text-lg mb-2">Subject: {subject}</p>
+                <p>Course: {course}</p>
+                <p>Section: {section}</p>
+                <p>Shift: {shiftLabel}</p>
+                <p>Year: {year}</p>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent Link navigation
+                    onDeleteClass(className);
+                  }}
+                  className="absolute rounded-lg top-0 right-0 px-3 py-1 bg-red-500 text-white hover:bg-red-700 h-full w-32 flex items-center justify-center"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </Link>
           );
         })}
       </div>
     );
   };
-
 
   const handleCreateClass = async () => {
     if (
@@ -197,7 +224,7 @@ const Home = () => {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col justify-center items-center relative">
+    <div className=" w-full min-h-screen flex flex-col justify-center items-center relative">
       {toastMessage && <div className="toast-top">{toastMessage}</div>}
       {isLoading && ( // Display loading component when isLoading is true
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
@@ -205,34 +232,48 @@ const Home = () => {
         </div>
       )}
       {isAuthenticated ? (
-        <div className="flex w-full">
-          <div className="hidden lg:flex lg:w-1/2 p-4 flex-col space-y-4">
+        <div className="flex w-full scrollable">
+          <div className="hidden lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
             <img src={user?.picture} className="rounded-full w-32 h-32" />
             <p className="text-4xl font-normal">
               Welcome, <span className="font-medium">{user?.given_name}</span>
+              <br />
             </p>
             <p className="text-lg font-medium">
               Full Name: {user?.given_name} {user?.family_name}
             </p>
             <p className="text-lg font-medium">Email: {user?.email}</p>
           </div>
-          <div className="w-1/2 p-4">
+          <div className="w-full lg:w-1/2 p-4 ">
+            <div className="list h-1/12" style={{ backgroundColor: "white" }}>
+              {/* Your content goes here */}
+              &nbsp;
+            </div>
             <button
               onClick={handleAddClass}
-              className="bg-blue-500 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
+              className="bg-blue-500 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300 hover:bg-blue-700"
             >
               Add Class
             </button>
+
+            <hr className="mt-2" />
             {isAuthenticated && (
               <div className="mt-8">
                 <h3 className="text-lg font-medium mb-5">Available Classes:</h3>
+
                 <ClassList
                   classes={classes}
                   onDeleteClass={handleDeleteClass}
                 />
+
+                <div className="list h-60" style={{ backgroundColor: "white" }}>
+                  {/* Your content goes here */}
+                  &nbsp;
+                </div>
               </div>
             )}
           </div>
+
           {showModal && (
             <div className="fixed z-10 inset-0 overflow-y-auto">
               <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
