@@ -1,7 +1,12 @@
 const express = require("express");
 const mysql = require("mysql");
+const cors = require("cors");
 
 const app = express();
+const port = 5000; // Or whatever port you're using for your server
+
+// Enable CORS middleware
+app.use(cors());
 
 const dbConfig = {
   host: "sql6.freesqldatabase.com",
@@ -100,7 +105,6 @@ app.get("/unique-values", (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

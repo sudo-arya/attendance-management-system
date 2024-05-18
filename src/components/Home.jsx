@@ -2,11 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import Spline from "@splinetool/react-spline";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Home = () => {
   const { isAuthenticated, user, login } = useKindeAuth();
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [uniqueValues, setUniqueValues] = useState({
+    section: [],
+    shift: [],
+    course: [],
+    year: [],
+  });
+  const [error, setError] = useState(null);
+  
+    useEffect(() => {
+      // Fetch unique values when component mounts
+      fetchUniqueValues();
+    }, []);
+
+    const fetchUniqueValues = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/unique-values");
+        setUniqueValues(response.data);
+        setError(null);
+      } catch (error) {
+        setError("Failed to fetch unique values. Please try again later.");
+        console.error("Error fetching unique values:", error);
+      }
+    };
 
   useEffect(() => {
     const navbar = document.querySelector(".navbar");
@@ -15,9 +39,9 @@ const Home = () => {
     }
   }, []);
 
-  const handleAddClass = () => {
-    setShowModal(true);
-  };
+const handleAddClass = () => {
+  setShowModal(true);
+};
 
   const closeModal = () => {
     setShowModal(false);
@@ -48,6 +72,7 @@ const Home = () => {
                         <h3 className="text-lg leading-6 font-medium text-gray-900">
                           Create Class
                         </h3>
+                        {error && <p className="text-red-500">{error}</p>}
                         <form className="mt-4">
                           <div className="mb-4">
                             <label className="block text-gray-700">
@@ -55,21 +80,33 @@ const Home = () => {
                             </label>
                             <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                               <option>Select Course</option>
-                              {/* Add more options as needed */}
+                              {uniqueValues.course.map((course) => (
+                                <option key={course} value={course}>
+                                  {course}
+                                </option>
+                              ))}
                             </select>
                           </div>
                           <div className="mb-4">
                             <label className="block text-gray-700">Shift</label>
                             <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                               <option>Select Shift</option>
-                              {/* Add more options as needed */}
+                              {uniqueValues.shift.map((shift) => (
+                                <option key={shift} value={shift}>
+                                  {shift}
+                                </option>
+                              ))}
                             </select>
                           </div>
                           <div className="mb-4">
                             <label className="block text-gray-700">Year</label>
                             <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                               <option>Select Year</option>
-                              {/* Add more options as needed */}
+                              {uniqueValues.year.map((year) => (
+                                <option key={year} value={year}>
+                                  {year}
+                                </option>
+                              ))}
                             </select>
                           </div>
                           <div className="mb-4">
@@ -78,7 +115,11 @@ const Home = () => {
                             </label>
                             <select className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                               <option>Select Section</option>
-                              {/* Add more options as needed */}
+                              {uniqueValues.section.map((section) => (
+                                <option key={section} value={section}>
+                                  {section}
+                                </option>
+                              ))}
                             </select>
                           </div>
                           <div className="mb-4">
