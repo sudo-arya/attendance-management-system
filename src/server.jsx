@@ -10,6 +10,8 @@ app.use(cors());
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 const dbConfig = {
   host: "sql6.freesqldatabase.com",
@@ -47,6 +49,7 @@ const cleanupExpiredEndpoints = () => {
 
 // Schedule the cleanup task to run every minute
 setInterval(cleanupExpiredEndpoints, 60 * 1000);
+let selectedClass; // Define selectedClass in the global scope
 
 // Middleware to check if the dynamic endpoint is still valid
 const validateDynamicEndpoint = (req, res, next) => {
@@ -54,7 +57,9 @@ const validateDynamicEndpoint = (req, res, next) => {
   if (dynamicEndpoints[endpoint]) {
     return next();
   } else {
-    return res.status(404).json({ error: 'Endpoint has expired or does not exist.' });
+    return res
+      .status(404)
+      .json({ error: "Endpoint has expired or does not exist." });
   }
 };
 
@@ -84,7 +89,145 @@ app.post("/created-qr", (req, res) => {
 
   console.log(`Dynamic Endpoint: http://localhost:${port}/${dynamicEndpoint}`);
 
-  res.status(200).json({ message: "QR code data received successfully", dynamicEndpoint });
+  res
+    .status(200)
+    .json({ message: "QR code data received successfully", dynamicEndpoint });
+});
+
+
+const validClassNames = ["BCA_M_2021_A_DVA", "other_valid_class_names"]; // Initial valid class names
+
+// Middleware to check if the className is valid
+const validateClassName = async (req, res, next) => {
+  const { className } = req.params;
+
+  // Query the database to fetch unique class names from class_history table
+  const fetchValidClassNames = () => {
+    return new Promise((resolve, reject) => {
+      const query = "SELECT DISTINCT class_created FROM class_history";
+      pool.query(query, (error, results) => {
+        if (error) {
+          return reject(error);
+        }
+        const classNames = results.map((row) => row.class_created);
+        resolve(classNames);
+      });
+    });
+  };
+
+  try {
+    // Fetch valid class names from the database
+    const classNamesFromDB = await fetchValidClassNames();
+
+    // Update the validClassNames array with class names from the database
+    validClassNames.push(...classNamesFromDB);
+
+    // Check if className is in the validClassNames array
+    if (!validClassNames.includes(className)) {
+      return res.status(400).json({ error: "Invalid class name" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error fetching valid class names:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+// Define a route to fetch marked attendance students
+// Define a route to fetch marked attendance students
+app.get("/api/marked-students/:className/:selectedDate", (req, res) => {
+  const { className, selectedDate } = req.params;
+
+  // Validate className to prevent SQL injection
+   // Add other valid class names
+  if (!validClassNames.includes(className)) {
+    return res.status(400).json({ error: "Invalid class name" });
+  }
+
+  // Set to store marked attendance students
+  const markedStudentsSet = new Set();
+
+  // Function to fetch data from the database and send response
+  const fetchDataAndUpdateResponse = () => {
+    // SQL query to fetch marked attendance students
+    const query = `SELECT name FROM \`${className}\` WHERE \`${selectedDate}\` = ? LIMIT 0, 25`;
+
+    // Execute the query
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.error("Error getting connection from pool:", err);
+        return res.status(500).json({ error: "Error getting connection from pool" });
+      }
+
+      connection.query(query, [1], (err, results) => {
+        connection.release(); // Release the connection
+
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).json({ error: "Error executing query" });
+        }
+
+        // Extract marked attendance students from the results
+        const newMarkedStudents = results.map((row) => row.name);
+
+        // Add new marked students to the set
+        newMarkedStudents.forEach(student => markedStudentsSet.add(student));
+
+        // Convert set to array
+        const markedStudents = [...markedStudentsSet];
+
+        // Send the marked students as JSON response
+        res.json({ markedStudents });
+      });
+    });
+  };
+
+  // Call fetchDataAndUpdateResponse initially
+  fetchDataAndUpdateResponse();
+
+  // Update the response every 1 second
+  const interval = setInterval(fetchDataAndUpdateResponse, 1000);
+
+  // Clear the interval when the request ends
+  res.on("close", () => clearInterval(interval));
+});
+
+
+
+
+
+
+// Define a route to update attendance
+app.post("/api/update-attendance", (req, res) => {
+  const { studentName, selectedDate, className, attendanceStatus } = req.body;
+
+  // Validate the received data
+  if (!studentName || !selectedDate || !className || attendanceStatus === undefined) {
+    return res.status(400).json({ error: "Invalid request data" });
+  }
+
+  // Construct the SQL query to update attendance
+  const updateAttendanceQuery = `
+    UPDATE ${className}
+    SET \`${selectedDate}\` = ?
+    WHERE name = ?
+  `;
+
+  // Execute the SQL query
+  pool.query(updateAttendanceQuery, [attendanceStatus, studentName], (error, results) => {
+    if (error) {
+      console.error("Error updating attendance:", error);
+      return res.status(500).json({ error: "Error updating attendance" });
+    }
+
+    // Check if any rows were affected
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "Student not found or attendance already marked" });
+    }
+
+    // Attendance updated successfully
+    res.status(200).json({ message: "Attendance marked successfully" });
+  });
 });
 
 
@@ -106,7 +249,6 @@ app.post("/selected-class", (req, res) => {
   res.status(200).json({ message: "Selected class stored successfully" });
 });
 
-
 let selectedDate = null; // Define selectedDate in the global scope
 
 // Define a new endpoint to handle the response from marking attendance
@@ -115,8 +257,6 @@ app.post("/selected-date", (req, res) => {
   console.log("Selected date:", selectedDate); // Access selectedDate here
   res.status(200).json({ message: "Selected date stored successfully" });
 });
-
-
 
 // Dynamic route to capture the dynamic endpoint
 app.post(
@@ -179,9 +319,13 @@ app.post(
             pool.query(markAttendanceQuery, [extractedNumber], (error) => {
               if (error) {
                 console.error("Error marking attendance:", error);
-                return res.status(500).json({ error: "Error marking attendance" });
+                return res
+                  .status(500)
+                  .json({ error: "Error marking attendance" });
               }
-              res.status(200).json({ message: "Attendance marked successfully" });
+              res
+                .status(200)
+                .json({ message: "Attendance marked successfully" });
             });
           });
         } else {
@@ -190,7 +334,9 @@ app.post(
           pool.query(markAttendanceQuery, [extractedNumber], (error) => {
             if (error) {
               console.error("Error marking attendance:", error);
-              return res.status(500).json({ error: "Error marking attendance" });
+              return res
+                .status(500)
+                .json({ error: "Error marking attendance" });
             }
             res.status(200).json({ message: "Attendance marked successfully" });
           });
@@ -199,20 +345,6 @@ app.post(
     });
   }
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Define a route to fetch data from the database
 app.get("/data", (req, res) => {
@@ -638,8 +770,8 @@ app.post("/delete-class-internal", (req, res) => {
   });
 });
 
-// Start the server
+// Start the server to listen on port 5000
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Also available on http://192.168.0.109:${port}`);
 });
-

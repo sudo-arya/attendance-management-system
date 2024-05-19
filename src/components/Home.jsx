@@ -29,6 +29,7 @@ const Home = () => {
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
+
   useEffect(() => {
     fetchUniqueValues();
   }, []);
@@ -127,6 +128,7 @@ const Home = () => {
                 <button
                   onClick={(e) => {
                     e.preventDefault(); // Prevent Link navigation
+                    e.stopPropagation(); // Stop event propagation
                     onDeleteClass(className);
                   }}
                   className="absolute rounded-lg top-0 right-0 px-3 py-1 bg-red-500 text-white hover:bg-red-700 h-full w-32 flex items-center justify-center"

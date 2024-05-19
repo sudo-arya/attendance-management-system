@@ -7,6 +7,8 @@ import Mark from "./components/Mark";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import DemoComponent from "./components/DemoComponent";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 
 function App() {
   return (
@@ -26,7 +28,7 @@ function App() {
             <Route path="/mark-attendance/:className" element={<Mark />} />
           </Routes>
         </div>
-        <Footer />
+        {/* <Footer /> */}
 
         
       </KindeProvider>
