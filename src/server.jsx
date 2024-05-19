@@ -88,6 +88,13 @@ app.post("/created-qr", (req, res) => {
 });
 
 
+
+
+
+
+
+
+
 // Define a new endpoint to handle the response from marking attendance
 app.post("/selected-class", (req, res) => {
   const { className } = req.body;
@@ -110,6 +117,7 @@ app.post("/selected-date", (req, res) => {
 });
 
 
+
 // Dynamic route to capture the dynamic endpoint
 app.post(
   "/:className-:yearSection/:date/:randomString",
@@ -118,25 +126,6 @@ app.post(
     const { className, yearSection, date, randomString } = req.params;
     const data = req.body.email; // Accessing the 'email' field from the request body
 
-    // Handle the response from marking attendance
-    if (req.originalUrl === "/selected-class") {
-      const { className } = req.body;
-
-      // Store the selectedClass
-      selectedClass = className;
-
-      console.log("Selected class:", selectedClass);
-      return res.status(200).json({ message: "Selected class stored successfully" });
-    }
-
-    // Handle the response for selected date
-    if (req.originalUrl === "/selected-date") {
-      selectedDate = req.body.selectedDate; // Assign the selectedDate from request body to the global selectedDate variable
-      console.log("Selected date:", selectedDate); // Access selectedDate here
-      return res.status(200).json({ message: "Selected date stored successfully" });
-    }
-
-    // Handle the main dynamic endpoint
     let extractedNumber = null;
     if (typeof data === "string") {
       // Using regular expression to find the first sequence of digits
@@ -150,11 +139,76 @@ app.post(
       `Data received at ${className}-${yearSection}/${date}/${randomString}:`,
       extractedNumber
     );
-    res.status(200).json({
-      message: `Data received at ${className}-${yearSection}/${date}/${randomString}`,
+
+    // Check if extractedNumber matches any enrollment_id in selectedClass table
+    const checkQuery = `
+      SELECT * FROM ${selectedClass}
+      WHERE enrollment_id = ?
+    `;
+    pool.query(checkQuery, [extractedNumber], (error, results) => {
+      if (error) {
+        console.error("Error executing query:", error);
+        return res.status(500).json({ error: "Error executing query" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Attendance not marked" });
+      }
+
+      // Check if column with selectedDate already exists
+      const columnExistsQuery = `
+        SELECT * FROM information_schema.columns
+        WHERE table_name = ? AND column_name = ?
+      `;
+      pool.query(columnExistsQuery, [selectedClass, date], (error, results) => {
+        if (error) {
+          console.error("Error executing query:", error);
+          return res.status(500).json({ error: "Error executing query" });
+        }
+
+        if (results.length === 0) {
+          // Column with selectedDate does not exist, create it
+          const createColumnQuery = `ALTER TABLE ${selectedClass} ADD \`${date}\` TINYINT(1) DEFAULT 0`;
+          pool.query(createColumnQuery, (error) => {
+            if (error) {
+              console.error("Error creating column:", error);
+              return res.status(500).json({ error: "Error creating column" });
+            }
+            // Mark 1 in the newly created column
+            const markAttendanceQuery = `UPDATE ${selectedClass} SET \`${date}\` = 1 WHERE enrollment_id = ?`;
+            pool.query(markAttendanceQuery, [extractedNumber], (error) => {
+              if (error) {
+                console.error("Error marking attendance:", error);
+                return res.status(500).json({ error: "Error marking attendance" });
+              }
+              res.status(200).json({ message: "Attendance marked successfully" });
+            });
+          });
+        } else {
+          // Column with selectedDate already exists, mark 1 in it
+          const markAttendanceQuery = `UPDATE ${selectedClass} SET \`${date}\` = 1 WHERE enrollment_id = ?`;
+          pool.query(markAttendanceQuery, [extractedNumber], (error) => {
+            if (error) {
+              console.error("Error marking attendance:", error);
+              return res.status(500).json({ error: "Error marking attendance" });
+            }
+            res.status(200).json({ message: "Attendance marked successfully" });
+          });
+        }
+      });
     });
   }
 );
+
+
+
+
+
+
+
+
+
+
 
 
 
