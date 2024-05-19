@@ -99,14 +99,7 @@ const Home = () => {
           return (
             <Link
               key={index}
-              to={{
-                pathname: "/mark-attendance",
-                state: {
-                  className, // Pass the class name as state
-                  userId: user.id, // Pass the user ID for validation
-                  // You can include any other data you want to pass here
-                },
-              }}
+              to={`/mark-attendance/${className}`} // Change to include className in URL
               className="block"
               onClick={(e) => {
                 e.preventDefault(); // Prevent default link behavior
@@ -115,7 +108,7 @@ const Home = () => {
                   // Redirect after 1 second
                   handleMarkAttendance(className);
                   setIsLoading(false); // Hide loading screen
-                  navigate("/mark-attendance");
+                  navigate(`/mark-attendance/${className}`); // Change to include className in URL
                 }, 550);
               }}
             >

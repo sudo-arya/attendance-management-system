@@ -457,14 +457,37 @@ app.post("/delete-class-internal", (req, res) => {
   });
 });
 
+
+
+// Define a variable to store the collected data
+let collectedClass = [];
 // Define a new route to collect attendance information
 app.post("/selected-class", (req, res) => {
   // Log the entire request body
   console.log("Data received at /selected-class:", req.body);
-
+  // Store the received data in the collectedData array
+  collectedClass.push(req.body);
   // Send the captured data back to the frontend
   res.status(200).json(req.body);
+
+  // Nested GET endpoint
+  app.get("/selected-class", (req, res) => {
+    // Send a response back to the /selected-class endpoint
+    res.status(200).json({collectedClass});
+  });
 });
+
+
+
+// Endpoint to get the collected data
+app.get("/collected-data", (req, res) => {
+  // Send the collected data in the response
+  res.status(200).json(collectedData);
+  // Clear the collectedData state after sending its contents
+  setCollectedData({});
+});
+
+
 
 
 

@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { KindeProvider } from "@kinde-oss/kinde-auth-react";
 import Home from "./components/Home";
 import View from "./components/View";
@@ -20,10 +20,9 @@ function App() {
         <Navbar />
         <div className="container mx-auto p-4">
           <Routes>
-            {""}
-            <Route path="/" element={<Home />} />{" "}
-            <Route path="/view-attendance" element={<View />} />{" "}
-            <Route path="/mark-attendance" element={<Mark />} />{" "}
+            <Route path="/" element={<Home />} />
+            <Route path="/view-attendance" element={<View />} />
+            <Route path="/mark-attendance/:className" element={<Mark />} />
           </Routes>
         </div>
         <Footer />
