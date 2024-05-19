@@ -118,6 +118,25 @@ app.post(
     const { className, yearSection, date, randomString } = req.params;
     const data = req.body.email; // Accessing the 'email' field from the request body
 
+    // Handle the response from marking attendance
+    if (req.originalUrl === "/selected-class") {
+      const { className } = req.body;
+
+      // Store the selectedClass
+      selectedClass = className;
+
+      console.log("Selected class:", selectedClass);
+      return res.status(200).json({ message: "Selected class stored successfully" });
+    }
+
+    // Handle the response for selected date
+    if (req.originalUrl === "/selected-date") {
+      selectedDate = req.body.selectedDate; // Assign the selectedDate from request body to the global selectedDate variable
+      console.log("Selected date:", selectedDate); // Access selectedDate here
+      return res.status(200).json({ message: "Selected date stored successfully" });
+    }
+
+    // Handle the main dynamic endpoint
     let extractedNumber = null;
     if (typeof data === "string") {
       // Using regular expression to find the first sequence of digits
@@ -126,8 +145,6 @@ app.post(
         extractedNumber = extractedNumberMatch[0].replace(/^0+/, ""); // Trim leading zeros
       }
     }
-
-    
 
     console.log(
       `Data received at ${className}-${yearSection}/${date}/${randomString}:`,
@@ -138,6 +155,7 @@ app.post(
     });
   }
 );
+
 
 
 
