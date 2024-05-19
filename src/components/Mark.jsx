@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useNavigate, useParams } from "react-router-dom";
 import QRCode from "qrcode.react"; // Import the QRCode component from qrcode.react
-import DemoComponent from "./DemoComponent";
 
 const Mark = () => {
   const { isAuthenticated, user } = useKindeAuth(); // Destructure user from useKindeAuth
@@ -54,6 +53,22 @@ const Mark = () => {
       .catch((error) => {
         console.error("Error sending QR code data:", error);
       });
+
+    // Post selectedDate to the /selected-date endpoint
+    fetch("http://localhost:5000/selected-date", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedDate }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Selected date sent successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Error sending selected date:", error);
+      });
   };
 
   useEffect(() => {
@@ -85,8 +100,6 @@ const Mark = () => {
     navigate("/");
     return null; // Render nothing while redirecting
   }
-
- 
 
   return (
     <div className="container mx-auto p-8">

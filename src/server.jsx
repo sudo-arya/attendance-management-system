@@ -87,14 +87,60 @@ app.post("/created-qr", (req, res) => {
   res.status(200).json({ message: "QR code data received successfully", dynamicEndpoint });
 });
 
-// Dynamic route to capture the dynamic endpoint
-app.post("/:className-:yearSection/:date/:randomString", validateDynamicEndpoint, (req, res) => {
-  const { className, yearSection, date, randomString } = req.params;
-  const data = req.body;
 
-  console.log(`Data received at ${className}-${yearSection}/${date}/${randomString}:`, data);
-  res.status(200).json({ message: `Data received at ${className}-${yearSection}/${date}/${randomString}` });
+// Define a new endpoint to handle the response from marking attendance
+app.post("/selected-class", (req, res) => {
+  const { className } = req.body;
+
+  // Store the selectedClass
+  selectedClass = className;
+
+  console.log("Selected class:", selectedClass);
+  res.status(200).json({ message: "Selected class stored successfully" });
 });
+
+
+let selectedDate = null; // Define selectedDate in the global scope
+
+// Define a new endpoint to handle the response from marking attendance
+app.post("/selected-date", (req, res) => {
+  selectedDate = req.body.selectedDate; // Assign the selectedDate from request body to the global selectedDate variable
+  console.log("Selected date:", selectedDate); // Access selectedDate here
+  res.status(200).json({ message: "Selected date stored successfully" });
+});
+
+
+// Dynamic route to capture the dynamic endpoint
+app.post(
+  "/:className-:yearSection/:date/:randomString",
+  validateDynamicEndpoint,
+  (req, res) => {
+    const { className, yearSection, date, randomString } = req.params;
+    const data = req.body.email; // Accessing the 'email' field from the request body
+
+    let extractedNumber = null;
+    if (typeof data === "string") {
+      // Using regular expression to find the first sequence of digits
+      const extractedNumberMatch = data.match(/\d+/);
+      if (extractedNumberMatch) {
+        extractedNumber = extractedNumberMatch[0].replace(/^0+/, ""); // Trim leading zeros
+      }
+    }
+
+    
+
+    console.log(
+      `Data received at ${className}-${yearSection}/${date}/${randomString}:`,
+      extractedNumber
+    );
+    res.status(200).json({
+      message: `Data received at ${className}-${yearSection}/${date}/${randomString}`,
+    });
+  }
+);
+
+
+
 
 // Define a route to fetch data from the database
 app.get("/data", (req, res) => {
