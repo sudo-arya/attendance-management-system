@@ -6,6 +6,7 @@ import View from "./components/View";
 import Mark from "./components/Mark";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import DemoComponent from "./components/DemoComponent";
 
 function App() {
   return (
@@ -26,6 +27,8 @@ function App() {
           </Routes>
         </div>
         <Footer />
+
+        
       </KindeProvider>
     </div>
   );
