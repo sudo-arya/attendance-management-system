@@ -273,7 +273,7 @@ useEffect(() => {
             className="rounded-full w-16 h-16 absolute top-4 right-4"
           />
           <p className="text-lg font-bold mb-2">{selectedDate}</p>
-          <p className="text-lg font-bold mb-2">{subject}</p>
+          <p className="text-lg font-bold mb-1">{subject}</p>
           <p>
             <strong>Course:</strong> {course}
           </p>
@@ -286,8 +286,8 @@ useEffect(() => {
           <p>
             <strong>Section:</strong> {section}
           </p>
-          <div className="mt-4">
-            <h3 className="text-md font-bold mb-4">User Details</h3>
+          <div className="mt-4 mb-3">
+            <h3 className="text-md font-bold mb-1">User Details</h3>
             <p>
               <strong>Name:</strong>&nbsp;
               {user?.given_name} {user?.family_name}
@@ -302,7 +302,7 @@ useEffect(() => {
 
       <div className="p-4 bg-white rounded-md shadow-md">
         <h3 className="text-xl font-bold mb-1">Marked Attendance Students</h3>
-        <p className="text-sm text-gray-500 mb-3 ">
+        <p className="text-sm text-gray-500 mb-2 ">
           Click on a student's name to unmark their attendance.
         </p>
         <ul className="flex flex-wrap">

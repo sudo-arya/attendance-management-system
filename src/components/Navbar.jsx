@@ -15,15 +15,21 @@ const Navbar = () => {
 
   return (
     <nav className="w-full bg-gray-800 p-4">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="max-w-7xl mx-auto flex justify-between items-center ">
         {/* Dummy logo */}
         <Link
           to="http://localhost:3000/"
           className="flex items-center space-x-2"
         >
-          <img src="/logo.svg" alt="Logo" className="h-8" />{" "}
+          {/* <img src="/logo.svg" alt="Logo" className="h-8" />{" "} */}
+          <i
+            className="fa-solid fa-clipboard-user text-3xl text-white hover:text-blue-500 mr-2"
+            alt="Logo"
+          ></i>{" "}
           {/* Replace "/logo.svg" with your logo path */}
-          <span className="text-white font-bold text-lg">Attendance App</span>
+          <span className="text-white font-bold text-lg hover:text-blue-500">
+            Attendance App
+          </span>
         </Link>
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
