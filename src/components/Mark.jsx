@@ -5,6 +5,8 @@ import QRCode from "qrcode.react"; // Import the QRCode component from qrcode.re
 import axios from "axios";
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faRotateRight } from '@fortawesome/free-solid-svg-icons'; // Import the icon you want to use
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
 
 
 const Mark = () => {
@@ -14,6 +16,8 @@ const Mark = () => {
   const [collectedData, setCollectedData] = useState({});
   const [course, shift, year, section, subject] = className.split("_");
   const shiftLabel = shift === "M" ? "Morning" : "Evening";
+  const [totalStudents, setTotalStudents] = useState(0);
+
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -28,11 +32,45 @@ const Mark = () => {
     fetchData();
   }, [selectedDate]);
 
+  useEffect(() => {
+    // Set selectedDate to the current date when the component mounts
+    setSelectedDate(new Date().toISOString().split("T")[0]);
+  }, []);
 
-useEffect(() => {
-  // Set selectedDate to the current date when the component mounts
-  setSelectedDate(new Date().toISOString().split("T")[0]);
-}, []);
+
+
+
+  const handleDownloadExcel = async (className) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/whole-table-data/${className}`
+      );
+      const data = response.data;
+
+      // Convert data to Excel format using xlsx library
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+      // Generate a binary blob and save it as a file
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      saveAs(blob, `${className}.xlsx`);
+    } catch (error) {
+      console.error("Error downloading Excel file:", error);
+      // Handle error here
+    }
+  };
+
+
+
+
+
 
 
   const handleMarkAbsent = (studentName) => {
@@ -69,9 +107,21 @@ useEffect(() => {
       } else {
         setMarkedStudents(null); // Set to null if no data is available
       }
+
+      // Fetch total number of students
+      const totalResponse = await axios.get(
+        `http://localhost:5000/api/total-students/${className}`
+      );
+
+      if (totalResponse.data && totalResponse.data.totalStudents) {
+        setTotalStudents(totalResponse.data.totalStudents);
+      } else {
+        setTotalStudents(0); // Set to 0 if no data is available
+      }
     } catch (error) {
-      console.error("Error fetching marked students:", error);
+      console.error("Error fetching data:", error);
       setMarkedStudents(null); // Set to null in case of an error
+      setTotalStudents(0); // Set to 0 in case of an error
     }
   };
 
@@ -226,9 +276,27 @@ useEffect(() => {
       <div className="flex mb-8">
         <div className="w-1/4 p-4 bg-white rounded-md shadow-md ">
           <h3 className="text-xl font-bold mb-4">No. of Students Marked</h3>
-          <p className="text-8xl flex items-center justify-center mt-20">
-            {markedStudents ? markedStudents.length : 0}
+          <p className="text-8xl flex ml-16 mt-10 ">
+            <span className="text-green-600 mr-5">
+              {markedStudents ? markedStudents.length : 0}
+            </span>{" "}
+            /
           </p>
+          <p>
+            {/* <strong>Out of :</strong> {totalStudents} */}
+            <p className="text-8xl flex items-center justify-center ml-20">
+              /{" "}
+              <span className=" text-gray-400 ml-4 mr-4">{totalStudents}</span>
+            </p>
+          </p>
+          {/* <p className="mt-6">
+            <span className="ml-10 px-4 py-2 bg-green-500 text-white rounded-md mr-8 hover:bg-green-600 transition-colors duration-300">
+              marked
+            </span>
+            <span className="ml-8 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-300">
+              total
+            </span>
+          </p> */}
         </div>
 
         {/* Center Div - QR Code or Manual Entry or Excel Upload */}
@@ -258,9 +326,17 @@ useEffect(() => {
             </div>
           )}
           {selectedTab === "excel" && (
-            <div>
+            <div className="">
               <h3 className="text-xl font-bold mb-4">Upload Excel</h3>
-              {/* Add Excel Upload Form Here */}
+
+              <div className="flex items-center justify-center mt-24">
+                <button
+                  className="px-4 py-2 bg-green-600 text-white rounded-md focus:outline-none hover:bg-gray-500"
+                  onClick={() => handleDownloadExcel(className)}
+                >
+                  Download Data as Excel
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -270,10 +346,10 @@ useEffect(() => {
           <h3 className="text-xl font-bold mb-4">Details of Class</h3>
           <img
             src={user?.picture}
-            className="rounded-full w-16 h-16 absolute top-4 right-4"
+            className="rounded-full w-18 h-18 absolute mr-10 mt-5 top-4 right-4"
           />
           <p className="text-lg font-bold mb-2">{selectedDate}</p>
-          <p className="text-lg font-bold mb-1">{subject}</p>
+          <p className=" text-lg font-bold mb-1">{subject}</p>
           <p>
             <strong>Course:</strong> {course}
           </p>
@@ -286,7 +362,10 @@ useEffect(() => {
           <p>
             <strong>Section:</strong> {section}
           </p>
-          <div className="mt-4 mb-3">
+          {/* <p>
+            <strong>Total Students:</strong> {totalStudents}
+          </p> */}
+          <div className="mt-4 mb-2">
             <h3 className="text-md font-bold mb-1">User Details</h3>
             <p>
               <strong>Name:</strong>&nbsp;

@@ -197,6 +197,49 @@ app.get("/api/marked-students/:className/:selectedDate", (req, res) => {
 
 
 
+// Define a route to fetch the total number of students for a class
+app.get("/api/total-students/:className", (req, res) => {
+  const { className } = req.params;
+
+  // Validate className to prevent SQL injection
+  // Add other valid class names
+  if (!validClassNames.includes(className)) {
+    return res.status(400).json({ error: "Invalid class name" });
+  }
+
+  // SQL query to count the total number of students in the class
+  const countQuery = `SELECT COUNT(*) AS totalStudents FROM \`${className}\``;
+
+  // Execute the query
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting connection from pool:", err);
+      return res.status(500).json({ error: "Error getting connection from pool" });
+    }
+
+    connection.query(countQuery, (err, results) => {
+      connection.release(); // Release the connection
+
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).json({ error: "Error executing query" });
+      }
+
+      // Extract the total number of students from the results
+      const totalStudents = results[0].totalStudents;
+
+      // Send the total number of students as JSON response
+      res.json({ totalStudents });
+    });
+  });
+});
+
+
+
+
+
+
+
 // Define a route to update attendance
 app.post("/api/update-attendance", (req, res) => {
   const { studentName, selectedDate, className, attendanceStatus } = req.body;
@@ -345,6 +388,42 @@ app.post(
     });
   }
 );
+
+
+
+// Define a route to fetch the whole table data
+app.get("/api/whole-table-data/:tableName", async (req, res) => {
+  const { tableName } = req.params;
+
+  try {
+    // Query the database to fetch the whole table data
+    const fetchTableData = () => {
+      return new Promise((resolve, reject) => {
+        const query = `SELECT * FROM ${tableName}`;
+        pool.query(query, (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(results);
+        });
+      });
+    };
+
+    // Fetch the whole table data
+    const tableData = await fetchTableData();
+
+    // Send the table data as JSON response
+    res.json(tableData);
+  } catch (error) {
+    console.error("Error fetching whole table data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
+
+
 
 // Define a route to fetch data from the database
 app.get("/data", (req, res) => {
