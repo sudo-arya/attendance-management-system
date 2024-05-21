@@ -254,7 +254,7 @@ const Home = () => {
       {isAuthenticated ? (
         <div className="flex w-full scrollable">
           {/* removed hidden */}
-          <div className=" lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
+          <div className="hidden lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
             <img src={user?.picture} className="rounded-full w-32 h-32" />
             <p className="text-4xl font-normal">
               Welcome, <span className="font-medium">{user?.given_name}</span>

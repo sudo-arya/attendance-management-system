@@ -252,43 +252,46 @@ const Mark = () => {
   }
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto p-8 scrollable">
       <h1 className="text-2xl font-bold mb-4">Mark Attendance</h1>
       {/* <h2 className="text-xl mb-4">Class: {className}</h2> */}
       {/* Display the className */}
       {/* Tab Selection Bar */}
-      <div className="flex justify-center border rounded-full items-center text-xl mt-12 mb-8 border-gray-300 ">
-        <button
-          className={`px-4 py-2 rounded-l-full focus:outline-none ${
-            selectedTab === "qr"
-              ? "bg-blue-500 text-white"
-              : "bg-white text-gray-800"
-          }`}
-          onClick={() => selectTab("qr")}
-        >
-          QR
-        </button>
-        <button
-          className={`px-4 py-2 focus:outline-none ${
-            selectedTab === "manual"
-              ? "bg-blue-500 text-white"
-              : "bg-white text-gray-800"
-          }`}
-          onClick={() => selectTab("manual")}
-        >
-          Manual
-        </button>
-        <button
-          className={`px-4 py-2 focus:outline-none ${
-            selectedTab === "excel"
-              ? "bg-blue-500 text-white"
-              : "bg-white text-gray-800"
-          }`}
-          onClick={() => selectTab("excel")}
-        >
-          Excel
-        </button>
-        <div className="flex items-center bg-white rounded-full px-4 py-2 ">
+      {/* Tab Selection Bar */}
+      <div className="flex flex-col md:flex-row justify-center md:border rounded-full items-center text-xl mt-12 mb-8 border-gray-300">
+        <div className="flex flex-col md:flex-row items-center w-full md:w-auto">
+          <button
+            className={`px-4 py-2 rounded-t-full md:rounded-l-full md:rounded-none focus:outline-none ${
+              selectedTab === "qr"
+                ? "bg-blue-500 text-white"
+                : "bg-white text-gray-800"
+            }`}
+            onClick={() => selectTab("qr")}
+          >
+            QR
+          </button>
+          <button
+            className={`px-4 py-2 focus:outline-none ${
+              selectedTab === "manual"
+                ? "bg-blue-500 text-white"
+                : "bg-white text-gray-800"
+            }`}
+            onClick={() => selectTab("manual")}
+          >
+            Manual
+          </button>
+          <button
+            className={`px-4 py-2 rounded-b-full md:rounded-r-full md:rounded-none focus:outline-none ${
+              selectedTab === "excel"
+                ? "bg-blue-500 text-white"
+                : "bg-white text-gray-800"
+            }`}
+            onClick={() => selectTab("excel")}
+          >
+            Excel
+          </button>
+        </div>
+        <div className="flex items-center bg-white rounded-full px-4 py-2 mt-4 md:mt-0 md:ml-4">
           <label htmlFor="datepicker" className="mr-2">
             Select Date:
           </label>
@@ -302,50 +305,42 @@ const Mark = () => {
           />
         </div>
       </div>
+
       {/* Attendance Marking Section */}
-      <div className="flex mb-8">
-        <div className="w-1/4 p-4 bg-white rounded-md shadow-md ">
+      <div className="flex flex-col md:flex-row mb-6">
+        {/* No. of Students Marked */}
+        <div className="w-full md:w-1/4 p-4 bg-white rounded-md shadow-md mb-4 md:mb-0">
           <h3 className="text-xl font-bold mb-4">No. of Students Marked</h3>
           <p className="text-8xl flex ml-16 mt-10 ">
             <span className="text-green-600 mr-5">
-              {markedStudents ? markedStudents.length : 0}
+              {markedStudents ? markedStudents.length : "--"}
             </span>{" "}
             /
           </p>
-          <p>
-            {/* <strong>Out of :</strong> {totalStudents} */}
-            <p className="text-8xl flex items-center justify-center ml-20">
-              /{" "}
-              <span className=" text-gray-400 ml-4 mr-4">{totalStudents}</span>
-            </p>
+          <p className="text-8xl flex items-center justify-center ml-20">
+            / <span className="text-gray-400 ml-4 mr-4">{totalStudents ? totalStudents : "--"}</span>
           </p>
-          {/* <p className="mt-6">
-            <span className="ml-10 px-4 py-2 bg-green-500 text-white rounded-md mr-8 hover:bg-green-600 transition-colors duration-300">
-              marked
-            </span>
-            <span className="ml-8 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-300">
-              total
-            </span>
-          </p> */}
         </div>
 
         {/* Center Div - QR Code or Manual Entry or Excel Upload */}
-        <div className="w-1/2 p-4 mx-4 bg-white rounded-md shadow-md">
+        <div className="w-full md:w-1/2 p-4 bg-white rounded-md shadow-md mb-4 md:mx-4">
           {selectedTab === "qr" && (
             <div>
-              <h3 className="text-xl font-bold mb-4">QR Code</h3>
-              <div className="flex justify-center items-center">
-                <div className="w-64 h-64 border flex justify-center items-center">
-                  {qrCodeData && <QRCode value={qrCodeData} size={256} />}
+              <h3 className="text-xl font-bold mb-2">QR Code</h3>
+              <p className="text-sm text-gray-500 mb-2 font-bold">
+                Click on QR to regenrate it.
+              </p>
+              <div className="flex flex-col items-center">
+                <div className="w-64 h-64 border flex justify-center items-center mb-1">
+                  <button
+                    className=""
+                    onClick={generateQrCodeData}
+                  >
+                    {qrCodeData && <QRCode value={qrCodeData} size={256} />}
+                  </button>
                 </div>
-                <button
-                  className="ml-10 w-20 h-20 px-4 py-2 bg-gray-300 rounded-md focus:outline-none hover:bg-black flex items-center justify-center"
-                  onClick={generateQrCodeData}
-                >
-                  <i className="fa-solid fa-rotate-right fa-2xl text-black hover:text-white"></i>{" "}
-                  {/* <FontAwesomeIcon icon="fa-solid fa-rotate-right" size="lg" /> */}
-                  {/* Font Awesome reload icon */}
-                </button>
+
+                {/* <i className="fa-solid fa-rotate-right fa-2xl text-black hover:text-white"></i> */}
               </div>
             </div>
           )}
@@ -369,22 +364,6 @@ const Mark = () => {
                     onChange={handleManualInputChange}
                   />
                 </div>
-                {/* <div className="mb-4">
-                  <label
-                    htmlFor="selectedDate"
-                    className="block text-md font-medium text-gray-700"
-                  >
-                    Date:
-                  </label>
-                  <input
-                    type="date"
-                    id="selectedDate"
-                    name="selectedDate"
-                    className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
-                    value={manualEntry.selectedDate}
-                    onChange={handleManualInputChange}
-                  />
-                </div> */}
                 <div className="flex justify-end">
                   <button
                     type="submit"
@@ -396,11 +375,9 @@ const Mark = () => {
               </form>
             </div>
           )}
-
           {selectedTab === "excel" && (
-            <div className="">
-              <h3 className="text-xl font-bold mb-4">Upload Excel</h3>
-
+            <div>
+              <h3 className="text-xl font-bold mb-4">Download Excel</h3>
               <div className="flex items-center justify-center mt-24">
                 <button
                   className="px-4 py-2 bg-green-600 text-white rounded-md focus:outline-none hover:bg-gray-500"
@@ -414,14 +391,14 @@ const Mark = () => {
         </div>
 
         {/* Right Div - Details of Class */}
-        <div className="w-2/6 p-4 bg-white rounded-md shadow-md relative">
+        <div className="w-full md:w-2/6 p-4 bg-white rounded-md shadow-md relative">
           <h3 className="text-xl font-bold mb-4">Details of Class</h3>
           <img
             src={user?.picture}
-            className="rounded-full w-18 h-18 absolute mr-10 mt-5 top-4 right-4"
+            className="rounded-full w-18 h-18 absolute top-4 right-4"
           />
           <p className="text-lg font-bold mb-2">{selectedDate}</p>
-          <p className=" text-lg font-bold mb-1">{subject}</p>
+          <p className="text-lg font-bold mb-1">{subject}</p>
           <p>
             <strong>Course:</strong> {course}
           </p>
@@ -434,14 +411,10 @@ const Mark = () => {
           <p>
             <strong>Section:</strong> {section}
           </p>
-          {/* <p>
-            <strong>Total Students:</strong> {totalStudents}
-          </p> */}
           <div className="mt-4 mb-2">
             <h3 className="text-md font-bold mb-1">User Details</h3>
             <p>
-              <strong>Name:</strong>&nbsp;
-              {user?.given_name} {user?.family_name}
+              <strong>Name:</strong> {user?.given_name} {user?.family_name}
             </p>
             <p>
               <strong>Email:</strong> {user.email}
@@ -449,11 +422,12 @@ const Mark = () => {
           </div>
         </div>
       </div>
+
       {/* Bottom Div - Marked Attendance Students */}
 
       <div className="p-4 bg-white rounded-md shadow-md">
         <h3 className="text-xl font-bold mb-1">Marked Attendance Students</h3>
-        <p className="text-sm text-gray-500 mb-2 ">
+        <p className="text-sm text-gray-500 mb-2 font-bold">
           Click on a student's name to unmark their attendance.
         </p>
         <ul className="flex flex-wrap">
@@ -475,6 +449,10 @@ const Mark = () => {
             <p>No students marked</p>
           )}
         </ul>
+      </div>
+      <div className="list h-32" style={{ backgroundColor: "white" }}>
+        {/* Your content goes here */}
+        &nbsp;
       </div>
       {/* <DemoComponent /> */}
     </div>
