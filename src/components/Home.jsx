@@ -56,7 +56,6 @@ const Home = () => {
     };
   }, [toastMessage]);
 
-
   const fetchUniqueValues = async () => {
     try {
       const response = await axios.get("http://localhost:5000/unique-values");
@@ -214,10 +213,6 @@ const Home = () => {
     }
   };
 
-
-  
-
-
   const handleDeleteClass = async (className) => {
     setIsLoading(true);
     try {
@@ -258,7 +253,8 @@ const Home = () => {
       )}
       {isAuthenticated ? (
         <div className="flex w-full scrollable">
-          <div className="hidden lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
+          // removed hidden
+          <div className=" lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
             <img src={user?.picture} className="rounded-full w-32 h-32" />
             <p className="text-4xl font-normal">
               Welcome, <span className="font-medium">{user?.given_name}</span>
@@ -298,7 +294,6 @@ const Home = () => {
               </div>
             )}
           </div>
-
           {showModal && (
             <div className="fixed z-10 inset-0 overflow-y-auto">
               <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
