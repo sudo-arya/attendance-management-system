@@ -17,6 +17,10 @@ const Mark = () => {
   const [course, shift, year, section, subject] = className.split("_");
   const shiftLabel = shift === "M" ? "Morning" : "Evening";
   const [totalStudents, setTotalStudents] = useState(0);
+  const [manualEntry, setManualEntry] = useState({
+    studentName: "",
+    attendanceStatus: "present", // Default value
+  });
 
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -37,6 +41,38 @@ const Mark = () => {
     setSelectedDate(new Date().toISOString().split("T")[0]);
   }, []);
 
+   const handleManualInputChange = (e) => {
+    const { name, value } = e.target;
+    setManualEntry({
+      ...manualEntry,
+      [name]: value,
+    });
+    // setSelectedDate(value); // Update selectedDate state
+  };
+
+   const handleManualAttendance = (e) => {
+     e.preventDefault();
+
+     // Make a POST request to update attendance for the manual entry
+     axios
+       .post("http://localhost:5000/api/update-attendance-multiple", {
+         className: className, // Replace "YourClassName" with your actual class name
+         enrollmentIds: [manualEntry.studentName], // Assuming enrollment ID is student name for manual entry
+         selectedDate: selectedDate, // Get selected date
+       })
+       .then((response) => {
+         console.log("Attendance marked successfully:", response.data);
+         // Reset form fields after successful submission
+         setManualEntry({
+           studentName: "",
+           selectedDate: "", // Reset date field
+         });
+       })
+       .catch((error) => {
+         console.error("Error marking attendance:", error);
+         // Handle error if needed
+       });
+   };
 
 
 
@@ -66,12 +102,6 @@ const Mark = () => {
       // Handle error here
     }
   };
-
-
-
-
-
-
 
   const handleMarkAbsent = (studentName) => {
     // Make a POST request to update attendance
@@ -190,7 +220,6 @@ const Mark = () => {
         console.error("Error sending selected date:", error);
       });
   };
-
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -323,9 +352,51 @@ const Mark = () => {
           {selectedTab === "manual" && (
             <div>
               <h3 className="text-xl font-bold mb-4">Manual Entry</h3>
-              {/* Add Manual Entry Form Here */}
+              <form onSubmit={handleManualAttendance}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="studentName"
+                    className="block text-md font-medium text-gray-700"
+                  >
+                    Student Name:
+                  </label>
+                  <input
+                    type="text"
+                    id="studentName"
+                    name="studentName"
+                    className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                    value={manualEntry.studentName}
+                    onChange={handleManualInputChange}
+                  />
+                </div>
+                {/* <div className="mb-4">
+                  <label
+                    htmlFor="selectedDate"
+                    className="block text-md font-medium text-gray-700"
+                  >
+                    Date:
+                  </label>
+                  <input
+                    type="date"
+                    id="selectedDate"
+                    name="selectedDate"
+                    className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                    value={manualEntry.selectedDate}
+                    onChange={handleManualInputChange}
+                  />
+                </div> */}
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-md font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Mark Attendance
+                  </button>
+                </div>
+              </form>
             </div>
           )}
+
           {selectedTab === "excel" && (
             <div className="">
               <h3 className="text-xl font-bold mb-4">Upload Excel</h3>

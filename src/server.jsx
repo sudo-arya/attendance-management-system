@@ -869,6 +869,92 @@ app.post("/delete-class-internal", (req, res) => {
   });
 });
 
+
+
+
+
+
+// Define a route to update attendance for multiple users for a selected date
+app.post("/api/update-attendance-multiple", (req, res) => {
+  const { className, enrollmentIds, selectedDate } = req.body;
+
+  // Validate the request data
+  if (!Array.isArray(enrollmentIds) || !selectedDate) {
+    return res.status(400).json({ error: "Invalid request data" });
+  }
+
+  // Check if the column with selectedDate exists in the class table
+  const columnExistsQuery = `
+    SELECT COUNT(*) AS count 
+    FROM information_schema.columns 
+    WHERE table_name = ? AND column_name = ?
+  `;
+
+  pool.query(columnExistsQuery, [className, selectedDate], (error, results) => {
+    if (error) {
+      console.error("Error checking column existence:", error);
+      return res.status(500).json({ error: "Error checking column existence" });
+    }
+
+    const columnExists = results[0].count > 0;
+
+    if (!columnExists) {
+      // Column with selectedDate does not exist, create it
+      const createColumnQuery = `ALTER TABLE ?? ADD ?? TINYINT(1) DEFAULT 0`;
+      pool.query(createColumnQuery, [className, selectedDate], (error) => {
+        if (error) {
+          console.error("Error creating column:", error);
+          return res.status(500).json({ error: "Error creating column" });
+        }
+        // Mark attendance for the enrollment IDs
+        markAttendance(className, enrollmentIds, selectedDate, res);
+      });
+    } else {
+      // Column with selectedDate already exists, update attendance
+      markAttendance(className, enrollmentIds, selectedDate, res);
+    }
+  });
+});
+
+// Function to update attendance for the given enrollment IDs
+function markAttendance(className, enrollmentIds, selectedDate, res) {
+  // SQL query to update attendance for each enrollment ID
+  const updateQuery = `
+    UPDATE ?? 
+    SET ?? = 1 
+    WHERE enrollment_id IN (?)
+  `;
+
+  // Execute the query to update attendance
+  pool.query(updateQuery, [className, selectedDate, enrollmentIds], (error, results) => {
+    if (error) {
+      console.error("Error updating attendance:", error);
+      return res.status(500).json({ error: "Error updating attendance" });
+    }
+
+    // Check if any rows were affected
+    const affectedRows = results.affectedRows || 0;
+    if (affectedRows === 0) {
+      return res.status(404).json({ error: "No users found or attendance already marked" });
+    }
+
+    // Attendance updated successfully
+    res.status(200).json({ message: "Attendance marked successfully" });
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Start the server to listen on port 5000
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
