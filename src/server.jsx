@@ -76,13 +76,13 @@ app.post("/created-qr", (req, res) => {
 
   // Extract className, selectedDate, and randomString
   const classNameParts = qrCodeParts[0].split("-"); // Split className by dashes
-  const yearSection = classNameParts.pop(); // Extract yearSection
-  const className = classNameParts.join("-"); // Rejoin className without yearSection
+  const yearSectionSubject = classNameParts.pop(); // Extract yearSectionSubject
+  const className = classNameParts.join("-"); // Rejoin className without yearSectionSubject
   const selectedDate = qrCodeParts[1];
   const randomString = qrCodeParts[2];
 
   // Define the dynamic endpoint
-  const dynamicEndpoint = `${className}-${yearSection}/${selectedDate}/${randomString}`;
+  const dynamicEndpoint = `${className}-${yearSectionSubject}/${selectedDate}/${randomString}`;
 
   // Store the dynamic endpoint with an expiry time (2 minutes)
   dynamicEndpoints[dynamicEndpoint] = Date.now() + 2 * 60 * 1000; // 2 minutes from now
@@ -93,6 +93,7 @@ app.post("/created-qr", (req, res) => {
     .status(200)
     .json({ message: "QR code data received successfully", dynamicEndpoint });
 });
+
 
 
 

@@ -154,7 +154,7 @@ const Mark = () => {
 
   const generateQrCodeData = () => {
     const randomString = generateRandomString(6);
-    const qrData = `${course}-${shift}-${year}-${section}/${selectedDate}/${randomString}`;
+    const qrData = `${course}-${shift}-${year}-${section}-${subject}/${selectedDate}/${randomString}`;
 
     setQrCodeData(qrData);
 
@@ -190,6 +190,7 @@ const Mark = () => {
         console.error("Error sending selected date:", error);
       });
   };
+
 
   useEffect(() => {
     if (isAuthenticated) {
