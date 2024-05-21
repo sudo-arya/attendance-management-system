@@ -59,7 +59,7 @@ const validateDynamicEndpoint = (req, res, next) => {
   } else {
     return res
       .status(404)
-      .json({ error: "Endpoint has expired or does not exist." });
+      .json({ error: "Qr has expired or does not exist." });
   }
 };
 
@@ -95,13 +95,12 @@ app.post("/created-qr", (req, res) => {
 });
 
 
-const validClassNames = ["BCA_M_2021_A_DVA", "other_valid_class_names"]; // Initial valid class names
 
 // Middleware to check if the className is valid
-const validateClassName = async (req, res, next) => {
+const validClassNames = async (req, res, next) => {
   const { className } = req.params;
 
-  // Query the database to fetch unique class names from class_history table
+  // Function to fetch unique class names from class_history table
   const fetchValidClassNames = () => {
     return new Promise((resolve, reject) => {
       const query = "SELECT DISTINCT class_created FROM class_history";
@@ -119,11 +118,11 @@ const validateClassName = async (req, res, next) => {
     // Fetch valid class names from the database
     const classNamesFromDB = await fetchValidClassNames();
 
-    // Update the validClassNames array with class names from the database
-    validClassNames.push(...classNamesFromDB);
+    // Combine initial valid class names with those fetched from the database
+    const allValidClassNames = ["BCA_M_2021_A_DVA", ...classNamesFromDB];
 
     // Check if className is in the validClassNames array
-    if (!validClassNames.includes(className)) {
+    if (!allValidClassNames.includes(className)) {
       return res.status(400).json({ error: "Invalid class name" });
     }
 
@@ -133,79 +132,72 @@ const validateClassName = async (req, res, next) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
 // Define a route to fetch marked attendance students
 // Define a route to fetch marked attendance students
-app.get("/api/marked-students/:className/:selectedDate", (req, res) => {
-  const { className, selectedDate } = req.params;
+app.get(
+  "/api/marked-students/:className/:selectedDate",
+  validClassNames,
+  (req, res) => {
+    const { className, selectedDate } = req.params;
 
-  // Validate className to prevent SQL injection
-   // Add other valid class names
-  if (!validClassNames.includes(className)) {
-    return res.status(400).json({ error: "Invalid class name" });
-  }
+    // Set to store marked attendance students
+    const markedStudentsSet = new Set();
 
-  // Set to store marked attendance students
-  const markedStudentsSet = new Set();
+    // Function to fetch data from the database and send response
+    const fetchDataAndUpdateResponse = () => {
+      // SQL query to fetch marked attendance students
+      const query = `SELECT name FROM \`${className}\` WHERE \`${selectedDate}\` = ? LIMIT 0, 25`;
 
-  // Function to fetch data from the database and send response
-  const fetchDataAndUpdateResponse = () => {
-    // SQL query to fetch marked attendance students
-    const query = `SELECT name FROM \`${className}\` WHERE \`${selectedDate}\` = ? LIMIT 0, 25`;
-
-    // Execute the query
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.error("Error getting connection from pool:", err);
-        return res.status(500).json({ error: "Error getting connection from pool" });
-      }
-
-      connection.query(query, [1], (err, results) => {
-        connection.release(); // Release the connection
-
+      // Execute the query
+      pool.getConnection((err, connection) => {
         if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).json({ error: "Error executing query" });
+          console.error("Error getting connection from pool:", err);
+          return res
+            .status(500)
+            .json({ error: "Error getting connection from pool" });
         }
 
-        // Extract marked attendance students from the results
-        const newMarkedStudents = results.map((row) => row.name);
+        connection.query(query, [1], (err, results) => {
+          connection.release(); // Release the connection
 
-        // Add new marked students to the set
-        newMarkedStudents.forEach(student => markedStudentsSet.add(student));
+          if (err) {
+            console.error("Error executing query:", err);
+            return res.status(500).json({ error: "Error executing query" });
+          }
 
-        // Convert set to array
-        const markedStudents = [...markedStudentsSet];
+          // Extract marked attendance students from the results
+          const newMarkedStudents = results.map((row) => row.name);
 
-        // Send the marked students as JSON response
-        res.json({ markedStudents });
+          // Add new marked students to the set
+          newMarkedStudents.forEach((student) =>
+            markedStudentsSet.add(student)
+          );
+
+          // Convert set to array
+          const markedStudents = [...markedStudentsSet];
+
+          // Send the marked students as JSON response
+          res.json({ markedStudents });
+        });
       });
-    });
-  };
+    };
 
-  // Call fetchDataAndUpdateResponse initially
-  fetchDataAndUpdateResponse();
+    // Call fetchDataAndUpdateResponse initially
+    fetchDataAndUpdateResponse();
 
-  // Update the response every 1 second
-  const interval = setInterval(fetchDataAndUpdateResponse, 1000);
+    // Update the response every 1 second
+    const interval = setInterval(fetchDataAndUpdateResponse, 1000);
 
-  // Clear the interval when the request ends
-  res.on("close", () => clearInterval(interval));
-});
-
-
-
-
-
+    // Clear the interval when the request ends
+    res.on("close", () => clearInterval(interval));
+  }
+);
 
 // Define a route to fetch the total number of students for a class
-app.get("/api/total-students/:className", (req, res) => {
+app.get("/api/total-students/:className", validClassNames, (req, res) => {
   const { className } = req.params;
-
-  // Validate className to prevent SQL injection
-  // Add other valid class names
-  if (!validClassNames.includes(className)) {
-    return res.status(400).json({ error: "Invalid class name" });
-  }
 
   // SQL query to count the total number of students in the class
   const countQuery = `SELECT COUNT(*) AS totalStudents FROM \`${className}\``;
@@ -214,7 +206,9 @@ app.get("/api/total-students/:className", (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) {
       console.error("Error getting connection from pool:", err);
-      return res.status(500).json({ error: "Error getting connection from pool" });
+      return res
+        .status(500)
+        .json({ error: "Error getting connection from pool" });
     }
 
     connection.query(countQuery, (err, results) => {
@@ -530,6 +524,14 @@ app.post("/create-class", (req, res) => {
 
   const tableName = `${course}_${shift}_${year}_${section}_${subject}`;
 
+  // SQL query to check if the table already exists
+  const checkTableExistsQuery = `
+    SELECT COUNT(*)
+    AS count FROM information_schema.tables 
+    WHERE table_schema = DATABASE() 
+    AND table_name = ?
+  `;
+
   // SQL query to create a new table with specified schema
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -560,91 +562,108 @@ app.post("/create-class", (req, res) => {
         .json({ error: "Error getting connection from pool" });
     }
 
-    // Execute the queries in a transaction
-    connection.beginTransaction((err) => {
+    // Check if the table already exists
+    connection.query(checkTableExistsQuery, [tableName], (err, results) => {
       if (err) {
         connection.release();
-        console.error("Error starting transaction:", err);
-        return res.status(500).json({ error: "Error starting transaction" });
+        console.error("Error checking table existence:", err);
+        return res.status(500).json({ error: "Error checking table existence" });
       }
 
-      // Create the new table
-      connection.query(createTableQuery, (err) => {
+      if (results[0].count > 0) {
+        // Table already exists
+        connection.release();
+        return res.status(400).json({ error: "Class is already created by another user." });
+      }
+
+      // Execute the queries in a transaction
+      connection.beginTransaction((err) => {
         if (err) {
-          return connection.rollback(() => {
-            connection.release();
-            console.error("Error creating table:", err);
-            return res.status(500).json({ error: "Error creating table" });
-          });
+          connection.release();
+          console.error("Error starting transaction:", err);
+          return res.status(500).json({ error: "Error starting transaction" });
         }
 
-        // Insert into class_history
-        connection.query(insertHistoryQuery, [email, tableName], (err) => {
+        // Create the new table
+        connection.query(createTableQuery, (err) => {
           if (err) {
             return connection.rollback(() => {
               connection.release();
-              console.error("Error inserting into class_history:", err);
-              return res
-                .status(500)
-                .json({ error: "Error inserting into class_history" });
+              console.error("Error creating table:", err);
+              return res.status(500).json({ error: "Error creating table" });
             });
           }
 
-          // Fetch data from student_data
-          connection.query(
-            fetchDataQuery,
-            [course, shift, year, section],
-            (err, results) => {
-              if (err) {
-                return connection.rollback(() => {
-                  connection.release();
-                  console.error("Error fetching data:", err);
-                  return res.status(500).json({ error: "Error fetching data" });
-                });
-              }
+          // Insert into class_history
+          connection.query(insertHistoryQuery, [email, tableName], (err) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                console.error("Error inserting into class_history:", err);
+                return res
+                  .status(500)
+                  .json({ error: "Error inserting into class_history" });
+              });
+            }
 
-              // Insert fetched data into the new table
-              const insertDataQuery = `
-                INSERT INTO ${tableName} (enrollment_id, name)
-                VALUES ?
-              `;
-              const values = results.map((row) => [
-                row.enrollment_id,
-                row.name,
-              ]);
-
-              connection.query(insertDataQuery, [values], (err) => {
+            // Fetch data from student_data
+            connection.query(
+              fetchDataQuery,
+              [course, shift, year, section],
+              (err, results) => {
                 if (err) {
                   return connection.rollback(() => {
                     connection.release();
-                    console.error("Error inserting data:", err);
-                    return res
-                      .status(500)
-                      .json({ error: "Error inserting data" });
+                    console.error("Error fetching data:", err);
+                    return res.status(500).json({ error: "Error fetching data" });
                   });
                 }
 
-                connection.commit((err) => {
-                  connection.release();
+                // Insert fetched data into the new table
+                const insertDataQuery = `
+                  INSERT INTO ${tableName} (enrollment_id, name)
+                  VALUES ?
+                `;
+                const values = results.map((row) => [
+                  row.enrollment_id,
+                  row.name,
+                ]);
+
+                connection.query(insertDataQuery, [values], (err) => {
                   if (err) {
-                    console.error("Error committing transaction:", err);
-                    return res
-                      .status(500)
-                      .json({ error: "Error committing transaction" });
+                    return connection.rollback(() => {
+                      connection.release();
+                      console.error("Error inserting data:", err);
+                      return res
+                        .status(500)
+                        .json({ error: "Error inserting data" });
+                    });
                   }
 
-                  res
-                    .status(200)
-                    .json({ message: "Class created successfully" });
+                  connection.commit((err) => {
+                    connection.release();
+                    if (err) {
+                      console.error("Error committing transaction:", err);
+                      return res
+                        .status(500)
+                        .json({ error: "Error committing transaction" });
+                    }
+
+                    res
+                      .status(200)
+                      .json({ message: "Class created successfully" });
+                  });
                 });
-              });
-            }
-          );
+              }
+            );
+          });
         });
       });
     });
   });
 });
+
+
 
 // Define a route to fetch classes created by a specific email
 app.get("/classes-by-email", (req, res) => {

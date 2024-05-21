@@ -15,6 +15,8 @@ const Home = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
+  const [toastColor, setToastColor] = useState(""); // Add this line
+
   const [refresh, setRefresh] = useState(false);
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState("");
@@ -29,7 +31,6 @@ const Home = () => {
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
-
   useEffect(() => {
     fetchUniqueValues();
   }, []);
@@ -41,13 +42,20 @@ const Home = () => {
   }, [user?.email, refresh]); // Add refresh as a dependency to re-fetch classes
 
   useEffect(() => {
+    let timer;
     if (toastMessage) {
-      const timer = setTimeout(() => {
+      // Set a timer to clear the toast message after 3 seconds
+      timer = setTimeout(() => {
         setToastMessage("");
       }, 3000);
-      return () => clearTimeout(timer);
     }
+
+    // Clear the timer if the toast message changes or the component unmounts
+    return () => {
+      clearTimeout(timer);
+    };
   }, [toastMessage]);
+
 
   const fetchUniqueValues = async () => {
     try {
@@ -78,7 +86,7 @@ const Home = () => {
     setIsLoading(true);
     try {
       await axios.post("http://localhost:5000/selected-class", {
-        className
+        className,
       });
       console.log("data sent successfully!");
       // Marking attendance successful, you can add further logic here if needed
@@ -165,6 +173,7 @@ const Home = () => {
       !selectedSubject
     ) {
       setToastMessage("Please fill in all required fields.");
+      setToastColor("bg-red-500");
       return;
     }
 
@@ -179,6 +188,22 @@ const Home = () => {
     try {
       await axios.post("http://localhost:5000/create-class", payload);
       setToastMessage("Class created successfully!");
+      setToastColor("bg-green-500"); // Set toast color to green on success
+    } catch (error) {
+      console.error("Error creating class:", error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.error ===
+          "Class is already created by another user."
+      ) {
+        setToastMessage("Class is already created by another user.");
+      } else {
+        setToastMessage("Failed to create class. Please try again.");
+      }
+      setToastColor("bg-red-500"); // Set toast color to red on error
+    } finally {
+      setIsLoading(false);
       setShowModal(false);
       setSelectedCourse("");
       setSelectedShift("");
@@ -186,13 +211,12 @@ const Home = () => {
       setSelectedSection("");
       setSelectedSubject("");
       setRefresh((prev) => !prev); // Trigger a refresh to fetch updated classes
-    } catch (error) {
-      console.error("Error creating class:", error);
-      setToastMessage("Failed to create class. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
+
+
+  
+
 
   const handleDeleteClass = async (className) => {
     setIsLoading(true);
@@ -202,10 +226,12 @@ const Home = () => {
         email: user.email,
       });
       setToastMessage("Class deleted successfully!");
+      setToastColor("bg-green-500"); // Add this line
       setRefresh((prev) => !prev); // Trigger a refresh to fetch updated classes
     } catch (error) {
       console.error("Error deleting class:", error);
       setToastMessage("Failed to delete class. Please try again.");
+      setToastColor("bg-red-500"); // Add this line
     } finally {
       setIsLoading(false);
     }
@@ -221,7 +247,10 @@ const Home = () => {
 
   return (
     <div className=" w-full min-h-screen flex flex-col justify-center items-center relative">
-      {toastMessage && <div className="toast-top">{toastMessage}</div>}
+      {toastMessage && (
+        <div className={`toast-top ${toastColor}`}>{toastMessage}</div>
+      )}
+
       {isLoading && ( // Display loading component when isLoading is true
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
