@@ -38,19 +38,18 @@ const Home = () => {
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
+  // const navigate = useNavigate();
 
+  const handleClick = () => {
+    navigate("/view-attendance");
+  };
 
-
-
-// const navigate = useNavigate();
-
-const handleClick = () => {
-  navigate("/view-attendance");
-};
-
-
-
-
+  useEffect(() => {
+    // Redirect to dashboard if user is authenticated
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated]); // Run this effect whenever isAuthenticated changes
 
   useEffect(() => {
     fetchUniqueValues();
@@ -71,19 +70,11 @@ const handleClick = () => {
       }, 3000);
     }
 
-
     // Clear the timer if the toast message changes or the component unmounts
     return () => {
       clearTimeout(timer);
     };
   }, [toastMessage]);
-
-
-
-
-
-
-  
 
   const fetchUniqueValues = async () => {
     try {
@@ -96,48 +87,34 @@ const handleClick = () => {
     }
   };
 
+  // useEffect(() => {
+  //   const handleMouseMove = (e) => {
+  //     const buttons = document.querySelectorAll("button");
 
+  //     buttons.forEach((button) => {
+  //       const rect = button.getBoundingClientRect();
+  //       const buttonCenterX = rect.left + rect.width / 2;
+  //       const buttonCenterY = rect.top + rect.height / 2;
+  //       const buttonCenterZ = rect.top + rect.height / 2;
 
+  //       const deltaX = e.clientX - buttonCenterX;
+  //       const deltaY = e.clientY - buttonCenterY;
+  //       const deltaZ = e.clientZ - buttonCenterZ;
 
+  //       const angle = Math.atan2(deltaX, deltaY) * (30 / Math.PI);
+  //       const facingAngle = angle + 0; // Adjust facing angle
 
+  //       // Apply the facing angle as a rotation in the Z-axis
+  //       button.style.transform = `rotateZ(${facingAngle}deg)`;
+  //     });
+  //   };
 
-// useEffect(() => {
-//   const handleMouseMove = (e) => {
-//     const buttons = document.querySelectorAll("button");
+  //   document.addEventListener("mousemove", handleMouseMove);
 
-//     buttons.forEach((button) => {
-//       const rect = button.getBoundingClientRect();
-//       const buttonCenterX = rect.left + rect.width / 2;
-//       const buttonCenterY = rect.top + rect.height / 2;
-//       const buttonCenterZ = rect.top + rect.height / 2;
-
-//       const deltaX = e.clientX - buttonCenterX;
-//       const deltaY = e.clientY - buttonCenterY;
-//       const deltaZ = e.clientZ - buttonCenterZ;
-
-//       const angle = Math.atan2(deltaX, deltaY) * (30 / Math.PI);
-//       const facingAngle = angle + 0; // Adjust facing angle
-
-//       // Apply the facing angle as a rotation in the Z-axis
-//       button.style.transform = `rotateZ(${facingAngle}deg)`;
-//     });
-//   };
-
-//   document.addEventListener("mousemove", handleMouseMove);
-
-//   return () => {
-//     document.removeEventListener("mousemove", handleMouseMove);
-//   };
-// }, []);
-
-
-
-
-
-
-
-
-
+  //   return () => {
+  //     document.removeEventListener("mousemove", handleMouseMove);
+  //   };
+  // }, []);
 
   const fetchClassesByEmail = async (email) => {
     try {
