@@ -20,7 +20,12 @@ const Mark = () => {
   const [manualEntry, setManualEntry] = useState({
     studentName: "",
     attendanceStatus: "present", // Default value
+
+
   });
+
+
+  let localhost = `192.168.230.1`;
 
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -55,7 +60,7 @@ const Mark = () => {
 
      // Make a POST request to update attendance for the manual entry
      axios
-       .post("http://localhost:5000/api/update-attendance-multiple", {
+       .post(`http://${localhost}:5000/api/update-attendance-multiple`, {
          className: className, // Replace "YourClassName" with your actual class name
          enrollmentIds: [manualEntry.studentName], // Assuming enrollment ID is student name for manual entry
          selectedDate: selectedDate, // Get selected date
@@ -79,7 +84,7 @@ const Mark = () => {
   const handleDownloadExcel = async (className) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/whole-table-data/${className}`
+        `http://${localhost}:5000/api/whole-table-data/${className}`
       );
       const data = response.data;
 
@@ -106,7 +111,7 @@ const Mark = () => {
   const handleMarkAbsent = (studentName) => {
     // Make a POST request to update attendance
     axios
-      .post("http://localhost:5000/api/update-attendance", {
+      .post(`http://${localhost}:5000/api/update-attendance`, {
         studentName: studentName,
         selectedDate: selectedDate, // Assuming selectedDate is available in the scope
         className: className, // Assuming className is available in the scope
@@ -128,7 +133,7 @@ const Mark = () => {
       console.log("Selected date:", selectedDate);
 
       const response = await axios.get(
-        `http://localhost:5000/api/marked-students/${className}/${selectedDate}`
+        `http://${localhost}:5000/api/marked-students/${className}/${selectedDate}`
       );
 
       // Check if the response contains the markedStudents data
@@ -140,7 +145,7 @@ const Mark = () => {
 
       // Fetch total number of students
       const totalResponse = await axios.get(
-        `http://localhost:5000/api/total-students/${className}`
+        `http://${localhost}:5000/api/total-students/${className}`
       );
 
       if (totalResponse.data && totalResponse.data.totalStudents) {
@@ -189,7 +194,7 @@ const Mark = () => {
     setQrCodeData(qrData);
 
     // Send QR code data to the endpoint
-    fetch("http://localhost:5000/created-qr", {
+    fetch(`http://${localhost}:5000/created-qr`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -205,7 +210,7 @@ const Mark = () => {
       });
 
     // Post selectedDate to the /selected-date endpoint
-    fetch("http://localhost:5000/selected-date", {
+    fetch(`http://${localhost}:5000/selected-date`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

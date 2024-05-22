@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+ let localhost = `192.168.230.1`;
 
 const dbConfig = {
   host: "sql6.freesqldatabase.com",
@@ -87,7 +88,9 @@ app.post("/created-qr", (req, res) => {
   // Store the dynamic endpoint with an expiry time (2 minutes)
   dynamicEndpoints[dynamicEndpoint] = Date.now() + 10 * 1000; // 10 seconds from now
 
-  console.log(`Dynamic Endpoint: http://localhost:${port}/${dynamicEndpoint}`);
+  console.log(
+    `Dynamic Endpoint: http://${localhost}:${port}/${dynamicEndpoint}`
+  );
 
   res
     .status(200)
@@ -958,5 +961,5 @@ function markAttendance(className, enrollmentIds, selectedDate, res) {
 // Start the server to listen on port 5000
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-  console.log(`Also available on http://192.168.0.109:${port}`);
+  console.log(`Also available on http://${localhost}:${port}`);
 });
