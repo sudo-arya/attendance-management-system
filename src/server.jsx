@@ -47,8 +47,8 @@ const cleanupExpiredEndpoints = () => {
   }
 };
 
-// Schedule the cleanup task to run every minute
-setInterval(cleanupExpiredEndpoints, 60 * 1000);
+// Schedule the cleanup task to run in every 5 seconds
+setInterval(cleanupExpiredEndpoints, 5 * 1000);
 let selectedClass; // Define selectedClass in the global scope
 
 // Middleware to check if the dynamic endpoint is still valid
@@ -85,7 +85,7 @@ app.post("/created-qr", (req, res) => {
   const dynamicEndpoint = `${className}-${yearSectionSubject}/${selectedDate}/${randomString}`;
 
   // Store the dynamic endpoint with an expiry time (2 minutes)
-  dynamicEndpoints[dynamicEndpoint] = Date.now() + 2 * 60 * 1000; // 2 minutes from now
+  dynamicEndpoints[dynamicEndpoint] = Date.now() + 10 * 1000; // 10 seconds from now
 
   console.log(`Dynamic Endpoint: http://localhost:${port}/${dynamicEndpoint}`);
 
