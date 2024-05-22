@@ -208,7 +208,7 @@ const Dashboard = () => {
     const className = `${selectedCourse}_${selectedShift}_${selectedYear}_${selectedSection}_${selectedSubject}`;
     const payload = {
       className,
-      email: user.email,
+      email: user ? (user.email ? user.email : "") : "", // Check if user and user.email are defined
     };
 
     try {
@@ -268,10 +268,10 @@ const Dashboard = () => {
   };
 
   // Redirect to '/' if the user is not authenticated
-  if (!isAuthenticated) {
-    navigate("/");
-    return null; // Render nothing while redirecting
-  }
+//   if (!isAuthenticated) {
+//     navigate("/");
+//     return null; // Render nothing while redirecting
+//   }
 
   return (
     <div className=" w-full min-h-screen flex flex-col justify-center items-center relative">

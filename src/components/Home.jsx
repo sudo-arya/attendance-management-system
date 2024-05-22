@@ -339,7 +339,7 @@ const handleClick = () => {
           {/* <Link to="/view-attendance"> */}
           <button
             id="viewAttendanceBtn"
-            className="relative bg-black hover:bg-gray-800 buttons text-white w-62 h-16 font-bold text-lg py-2 px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300"
+            className="relative bg-black hover:bg-gray-600 buttons text-white w-62 h-16 font-bold text-lg py-2 px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300"
             onClick={handleClick}
           >
             <span className="gradient-text text-opacity-0">
@@ -351,7 +351,7 @@ const handleClick = () => {
           <button
             id="signInBtn"
             onClick={login}
-            className="relative bg-black ml-12 hover:bg-gray-800 buttons w-62 h-16 text-white font-bold text-lg py-2 px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300 mt-4"
+            className="relative bg-black ml-12 hover:bg-gray-600 buttons w-62 h-16 text-white font-bold text-lg py-2 px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300 mt-4"
           >
             <span className="gradient-text text-opacity-0">
               Sign In with Google{" "}

@@ -125,7 +125,7 @@ button:hover::after {
   -webkit-background-clip: text; /* For Safari and older Chrome */
   background-clip: text; /* Standard property */
   -webkit-text-fill-color: transparent; /* For Safari and older Chrome */
-  text-fill-color: transparent; /* Standard property */
+  /* text-fill-color: transparent; Standard property */
   animation: shine 3s linear infinite;
   background-size: 400%;
 }
