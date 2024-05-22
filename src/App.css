@@ -85,6 +85,89 @@ body {
 }
 
 
+/*
+.gradient-text {
+  background: linear-gradient(to right, #ff7e5f, #feb47b, #86a8e7, #7f7fd5);
+  -webkit-background-clip: text; /* For Safari and older Chrome 
+  background-clip: text; /* Standard property 
+  -webkit-text-fill-color: transparent; /* For Safari and older Chrome 
+  text-fill-color: transparent; /* Standard property 
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -30%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.6),
+    rgba(255, 255, 255, 0)
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+}
+
+button:hover::after {
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+*/
+
+
+
+.gradient-text {
+  background: linear-gradient(90deg, #ff7e5f, #feb47b, #86a8e7, #7f7fd5);
+  -webkit-background-clip: text; /* For Safari and older Chrome */
+  background-clip: text; /* Standard property */
+  -webkit-text-fill-color: transparent; /* For Safari and older Chrome */
+  text-fill-color: transparent; /* Standard property */
+  animation: shine 3s linear infinite;
+  background-size: 400%;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 400%;
+  }
+}
+
+.buttons::after {
+  content: '';
+  position: absolute;
+  /* top: -20%;
+  left: -30%; */
+  width: 200%;
+  height: 200%;
+  /* background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.6),
+    rgba(255, 255, 255, 0)
+  ); */
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+  transform: scale(1.05); /* Increase scale on hover */
+  
+}
+
+.buttons:hover::after {
+  opacity: 0.6;
+  transition: opacity 0.3s;
+  transform: scale(1.05); /* Increase scale on hover */
+}
+
+
+
+
+
 /* .toast-top {
   position: fixed;
   top: 4px;
