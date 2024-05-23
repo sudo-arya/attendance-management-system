@@ -86,7 +86,7 @@ app.post("/created-qr", (req, res) => {
   const dynamicEndpoint = `${className}-${yearSectionSubject}/${selectedDate}/${randomString}`;
 
   // Store the dynamic endpoint with an expiry time (2 minutes)
-  dynamicEndpoints[dynamicEndpoint] = Date.now() + 10 * 1000; // 10 seconds from now
+  dynamicEndpoints[dynamicEndpoint] = Date.now() + 2*60 * 1000; // 2 minutes from now
 
   console.log(
     `Dynamic Endpoint: http://${localhost}:${port}/${dynamicEndpoint}`
@@ -299,64 +299,86 @@ app.post("/selected-date", (req, res) => {
   res.status(200).json({ message: "Selected date stored successfully" });
 });
 
-// Dynamic route to capture the dynamic endpoint
-app.post(
-  "/:className-:yearSection/:date/:randomString",
-  validateDynamicEndpoint,
-  (req, res) => {
-    const { className, yearSection, date, randomString } = req.params;
-    const data = req.body.email; // Accessing the 'email' field from the request body
+  // Dynamic route to capture the dynamic endpoint
+  app.post(
+    "/:className-:yearSection/:date/:randomString",
+    validateDynamicEndpoint,
+    (req, res) => {
+      const { className, yearSection, date, randomString } = req.params;
+      const data = req.body.email; // Accessing the 'email' field from the request body
 
-    let extractedNumber = null;
-    if (typeof data === "string") {
-      // Using regular expression to find the first sequence of digits
-      const extractedNumberMatch = data.match(/\d+/);
-      if (extractedNumberMatch) {
-        extractedNumber = extractedNumberMatch[0].replace(/^0+/, ""); // Trim leading zeros
-      }
-    }
-
-    console.log(
-      `Data received at ${className}-${yearSection}/${date}/${randomString}:`,
-      extractedNumber
-    );
-
-    // Check if extractedNumber matches any enrollment_id in selectedClass table
-    const checkQuery = `
-      SELECT * FROM ${selectedClass}
-      WHERE enrollment_id = ?
-    `;
-    pool.query(checkQuery, [extractedNumber], (error, results) => {
-      if (error) {
-        console.error("Error executing query:", error);
-        return res.status(500).json({ error: "Error executing query" });
+      let extractedNumber = null;
+      if (typeof data === "string") {
+        // Using regular expression to find the first sequence of digits
+        const extractedNumberMatch = data.match(/\d+/);
+        if (extractedNumberMatch) {
+          extractedNumber = extractedNumberMatch[0].replace(/^0+/, ""); // Trim leading zeros
+        }
       }
 
-      if (results.length === 0) {
-        return res.status(404).json({ error: "Attendance not marked" });
-      }
+      // console.log(` Endpoint \n\n${className}\n ${yearSection} \n ${date} \n ${randomString}`);
 
-      // Check if column with selectedDate already exists
-      const columnExistsQuery = `
-        SELECT * FROM information_schema.columns
-        WHERE table_name = ? AND column_name = ?
+      console.log(
+        `Data received at ${className}-${yearSection}/${date}/${randomString}:`,
+        extractedNumber
+      );
+
+      // Convert className and yearSection to the required format
+      const formattedClass = `${className}_${yearSection.replace(/-/g, "_")}`;
+
+
+      console.log(`\n\n\n${formattedClass}`);
+      // Check if extractedNumber matches any enrollment_id in selectedClass table
+      const checkQuery = `
+        SELECT * FROM ${formattedClass}
+        WHERE enrollment_id = ?
       `;
-      pool.query(columnExistsQuery, [selectedClass, date], (error, results) => {
+      pool.query(checkQuery, [extractedNumber], (error, results) => {
         if (error) {
           console.error("Error executing query:", error);
           return res.status(500).json({ error: "Error executing query" });
         }
 
         if (results.length === 0) {
-          // Column with selectedDate does not exist, create it
-          const createColumnQuery = `ALTER TABLE ${selectedClass} ADD \`${date}\` TINYINT(1) DEFAULT 0`;
-          pool.query(createColumnQuery, (error) => {
-            if (error) {
-              console.error("Error creating column:", error);
-              return res.status(500).json({ error: "Error creating column" });
-            }
-            // Mark 1 in the newly created column
-            const markAttendanceQuery = `UPDATE ${selectedClass} SET \`${date}\` = 1 WHERE enrollment_id = ?`;
+          return res.status(404).json({ error: "Attendance not marked" });
+        }
+
+        // Check if column with selectedDate already exists
+        const columnExistsQuery = `
+          SELECT * FROM information_schema.columns
+          WHERE table_name = ? AND column_name = ?
+        `;
+        pool.query(columnExistsQuery, [formattedClass, date], (error, results) => {
+          if (error) {
+            console.error("Error executing query:", error);
+            return res.status(500).json({ error: "Error executing query" });
+          }
+
+          if (results.length === 0) {
+            // Column with selectedDate does not exist, create it
+            const createColumnQuery = `ALTER TABLE ${formattedClass} ADD \`${date}\` TINYINT(1) DEFAULT 0`;
+            pool.query(createColumnQuery, (error) => {
+              if (error) {
+                console.error("Error creating column:", error);
+                return res.status(500).json({ error: "Error creating column" });
+              }
+              // Mark 1 in the newly created column
+              const markAttendanceQuery = `UPDATE ${formattedClass} SET \`${date}\` = 1 WHERE enrollment_id = ?`;
+              pool.query(markAttendanceQuery, [extractedNumber], (error) => {
+                if (error) {
+                  console.error("Error marking attendance:", error);
+                  return res
+                    .status(500)
+                    .json({ error: "Error marking attendance" });
+                }
+                res
+                  .status(200)
+                  .json({ message: "Attendance marked successfully" });
+              });
+            });
+          } else {
+            // Column with selectedDate already exists, mark 1 in it
+            const markAttendanceQuery = `UPDATE ${formattedClass} SET \`${date}\` = 1 WHERE enrollment_id = ?`;
             pool.query(markAttendanceQuery, [extractedNumber], (error) => {
               if (error) {
                 console.error("Error marking attendance:", error);
@@ -364,28 +386,13 @@ app.post(
                   .status(500)
                   .json({ error: "Error marking attendance" });
               }
-              res
-                .status(200)
-                .json({ message: "Attendance marked successfully" });
+              res.status(200).json({ message: "Attendance marked successfully" });
             });
-          });
-        } else {
-          // Column with selectedDate already exists, mark 1 in it
-          const markAttendanceQuery = `UPDATE ${selectedClass} SET \`${date}\` = 1 WHERE enrollment_id = ?`;
-          pool.query(markAttendanceQuery, [extractedNumber], (error) => {
-            if (error) {
-              console.error("Error marking attendance:", error);
-              return res
-                .status(500)
-                .json({ error: "Error marking attendance" });
-            }
-            res.status(200).json({ message: "Attendance marked successfully" });
-          });
-        }
+          }
+        });
       });
-    });
-  }
-);
+    }
+  );
 
 
 
