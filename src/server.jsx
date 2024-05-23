@@ -49,7 +49,7 @@ const cleanupExpiredEndpoints = () => {
 };
 
 // Schedule the cleanup task to run in every 5 seconds
-setInterval(cleanupExpiredEndpoints, 5 * 1000);
+setInterval(cleanupExpiredEndpoints, 2 * 1000);
 let selectedClass; // Define selectedClass in the global scope
 
 // Middleware to check if the dynamic endpoint is still valid

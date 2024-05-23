@@ -17,6 +17,8 @@ const Mark = () => {
   const [course, shift, year, section, subject] = className.split("_");
   const shiftLabel = shift === "M" ? "Morning" : "Evening";
   const [totalStudents, setTotalStudents] = useState(0);
+  const [countdown, setCountdown] = useState(9);
+
   const [manualEntry, setManualEntry] = useState({
     studentName: "",
     attendanceStatus: "present", // Default value
@@ -169,6 +171,19 @@ const Mark = () => {
   // For example:
   // handleQRCodeGeneration("2024-05-20");
 
+
+useEffect(() => {
+  let timer;
+  if (countdown > 0) {
+    timer = setInterval(() => {
+      setCountdown((prevCountdown) => prevCountdown - 1);
+    }, 1000);
+  }
+  return () => clearInterval(timer);
+}, [countdown]);
+
+
+
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 1000); // Refresh data every 1 second
@@ -188,6 +203,7 @@ const Mark = () => {
   };
 
   const generateQrCodeData = () => {
+    setCountdown(9); // Reset countdown timer
     const randomString = generateRandomString(6);
     const qrData = `${course}-${shift}-${year}-${section}-${subject}/${selectedDate}/${randomString}`;
 
@@ -312,18 +328,21 @@ const Mark = () => {
       </div>
 
       {/* Attendance Marking Section */}
-      <div className="flex flex-col md:flex-row mb-6">
+      <div className="flex flex-col md:flex-row p-4 mb-1">
         {/* No. of Students Marked */}
-        <div className="w-full md:w-1/4 p-4 bg-white rounded-md shadow-md mb-4 md:mb-0">
+        <div className="w-full md:w-1/4 p-4 bg-white rounded-md shadow-md md:mb-0">
           <h3 className="text-xl font-bold mb-4">No. of Students Marked</h3>
-          <p className="text-8xl flex ml-16 mt-10 ">
+          <p className="text-8xl flex ml-16 mt-16 ">
             <span className="text-green-600 mr-5">
               {markedStudents ? markedStudents.length : "--"}
             </span>{" "}
             /
           </p>
           <p className="text-8xl flex items-center justify-center ml-20">
-            / <span className="text-gray-400 ml-4 mr-4">{totalStudents ? totalStudents : "--"}</span>
+            /{" "}
+            <span className="text-gray-400 ml-4 mr-4">
+              {totalStudents ? totalStudents : "--"}
+            </span>
           </p>
         </div>
 
@@ -333,22 +352,22 @@ const Mark = () => {
             <div>
               <h3 className="text-xl font-bold mb-2">QR Code</h3>
               <p className="text-sm text-gray-500 mb-2 font-bold">
-                Click on QR to regenrate it.
+                Click on QR to regenerate it.
               </p>
               <div className="flex flex-col items-center">
+                <div className="mb-2">
+                  <span className="text-2xl font-bold">{countdown}</span>{" "}
+                  seconds remaining
+                </div>
                 <div className="w-64 h-64 border flex justify-center items-center mb-1">
-                  <button
-                    className=""
-                    onClick={generateQrCodeData}
-                  >
+                  <button className="" onClick={generateQrCodeData}>
                     {qrCodeData && <QRCode value={qrCodeData} size={256} />}
                   </button>
                 </div>
-
-                {/* <i className="fa-solid fa-rotate-right fa-2xl text-black hover:text-white"></i> */}
               </div>
             </div>
           )}
+
           {selectedTab === "manual" && (
             <div>
               <h3 className="text-xl font-bold mb-4">Manual Entry</h3>
@@ -397,13 +416,13 @@ const Mark = () => {
 
         {/* Right Div - Details of Class */}
         <div className="w-full md:w-2/6 p-4 bg-white rounded-md shadow-md relative">
-          <h3 className="text-xl font-bold mb-4">Details of Class</h3>
+          <h3 className="text-2xl font-bold mb-8">Details of Class</h3>
           <img
             src={user?.picture}
-            className="rounded-full w-18 h-18 absolute top-4 right-4"
+            className="rounded-full w-18 h-18 absolute top-12 right-10"
           />
-          <p className="text-lg font-bold mb-2">{selectedDate}</p>
-          <p className="text-lg font-bold mb-1">{subject}</p>
+          <p className="text-xl font-bold mb-2">{selectedDate}</p>
+          <p className="text-xl font-bold mb-1">{subject}</p>
           <p>
             <strong>Course:</strong> {course}
           </p>
@@ -417,7 +436,7 @@ const Mark = () => {
             <strong>Section:</strong> {section}
           </p>
           <div className="mt-4 mb-2">
-            <h3 className="text-md font-bold mb-1">User Details</h3>
+            <h3 className="text-xl font-bold mb-1">User Details</h3>
             <p>
               <strong>Name:</strong> {user?.given_name} {user?.family_name}
             </p>
@@ -451,7 +470,7 @@ const Mark = () => {
               </li>
             ))
           ) : (
-            <p>No students marked</p>
+            <p>No student marked currently</p>
           )}
         </ul>
       </div>
