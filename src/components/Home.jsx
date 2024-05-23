@@ -289,6 +289,21 @@ const Home = () => {
     setShowModal(false);
   };
 
+  // // Define styles for different screen sizes
+  // const styles = {
+  //   width: "100vw",
+  //   height: "100vh",
+  // };
+
+  // // Conditional styling for mobile screens
+  // const mobileStyles = {
+  //   width: "100vw",
+  //   height: "50vh", // Example of changing height for mobile
+  // };
+
+  // // Check if the screen width is less than a certain breakpoint (e.g., 768px)
+  // const isMobile = window.innerWidth < 768;
+
   return (
     <div className=" w-full min-h-screen flex flex-col justify-center items-center relative">
       {toastMessage && (
@@ -311,28 +326,29 @@ const Home = () => {
             // height: `calc(100vh - ${navbarHeight}px)`,
             height: "100vh",
           }}
+          // style={isMobile ? mobileStyles : styles}
         />
-        <div className="absolute top-3/4  flex flex-row items-end">
+        <div className="absolute top-3/4 flex flex-col md:flex-row items-end">
           {/* <Link to="/view-attendance"> */}
           <button
             id="viewAttendanceBtn"
-            className="relative bg-black hover:bg-gray-600 buttons text-white w-62 h-16 font-bold text-lg py-2 px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300"
+            className="relative bg-black hover:bg-gray-600 buttons text-white w-full md:w-auto h-12 md:h-16 font-bold text-lg py-2 px-4 md:px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300 mb-4 md:mb-0"
             onClick={handleClick}
           >
             <span className="gradient-text text-opacity-0">
-              View Attendance{" "}
-              <i class="fa-solid fa-arrow-up-right-from-square ml-3"></i>
+              View Attendance
+              <i className="fa-solid fa-arrow-up-right-from-square ml-3"></i>
             </span>
           </button>
           {/* </Link> */}
           <button
             id="signInBtn"
             onClick={login}
-            className="relative bg-black ml-12 hover:bg-gray-600 buttons w-62 h-16 text-white font-bold text-lg py-2 px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300 mt-4"
+            className="relative bg-black hover:bg-gray-600 buttons text-white w-full md:w-auto h-12 md:h-16 font-bold text-lg py-2 px-4 md:px-8 rounded-full focus:outline-none focus:ring focus:ring-gray-300 hover:shadow-lg transform transition-transform duration-300 mt-4 md:mt-0 md:ml-12"
           >
             <span className="gradient-text text-opacity-0">
-              Sign In with Google{" "}
-              <i class="fa-solid fa-arrow-up-right-from-square ml-3"></i>
+              Sign In with Google
+              <i className="fa-solid fa-arrow-up-right-from-square ml-3"></i>
             </span>
           </button>
         </div>
