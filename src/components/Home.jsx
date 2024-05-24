@@ -101,7 +101,7 @@ const Home = () => {
   //       const deltaY = e.clientY - buttonCenterY;
   //       const deltaZ = e.clientZ - buttonCenterZ;
 
-  //       const angle = Math.atan2(deltaX, deltaY) * (30 / Math.PI);
+  //       const angle = Math.atan2(deltaY, deltaX) * (30 / Math.PI);
   //       const facingAngle = angle + 0; // Adjust facing angle
 
   //       // Apply the facing angle as a rotation in the Z-axis

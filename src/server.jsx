@@ -958,6 +958,158 @@ function markAttendance(className, enrollmentIds, selectedDate, res) {
 
 
 
+// Define a route to handle search requests from view.jsx
+app.post("/search", async (req, res) => {
+  const { selectedCourse, selectedYear, fromDate, toDate } = req.body;
+
+  // Validate the request data
+  if (!selectedCourse || !selectedYear || !fromDate || !toDate) {
+    return res.status(400).json({ error: "Selected course, year, from date, and to date are required." });
+  }
+
+  try {
+    // Parse fromDate and toDate into Date objects
+    const fromDateObj = new Date(fromDate);
+    const toDateObj = new Date(toDate);
+
+    // Query the student_data table to fetch students matching the selected course, year, and date range
+    const fetchStudentsByCourseYearAndDateRange = () => {
+      return new Promise((resolve, reject) => {
+        const query = `
+          SELECT * 
+          FROM student_data 
+          WHERE course = ? 
+          AND year = ?
+        `;
+        pool.query(query, [selectedCourse, selectedYear], (error, results) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(results);
+        });
+      });
+    };
+
+    // Fetch the matching students
+    const matchingStudents = await fetchStudentsByCourseYearAndDateRange();
+
+    // Send the list of matching students as a response
+    res.json(matchingStudents);
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
+
+
+// Endpoint to handle requests from View.jsx
+app.post('/graph-data', async (req, res) => {
+  try {
+    // Extract data from the request body
+    const { enrollment_id, course, shift, section, year } = req.body;
+
+    // Here, you can perform database operations to fetch the data
+    // Query to search for matching table name from class_history table
+    const searchTableQuery = `SELECT class_created FROM class_history WHERE class_created LIKE ? LIMIT 0, 60`;
+
+    // Execute the query
+    // const queryResult = await pool.query(searchTableQuery, [
+    //   `${course}_${shift}_${year}_${section}_%`,
+    // ]);
+
+    // console.log("Query Result:", queryResult);
+
+    // // Check if any matching tables were found
+    // if (!Array.isArray(queryResult) || queryResult.length === 0) {
+    //   // Handle the case when no matching tables are found
+    //   return res.status(404).json({ error: "No matching tables found" });
+    // }
+
+
+
+
+
+    const fetchValidClassNames = () => {
+      return new Promise((resolve, reject) => {
+        const query = "SELECT DISTINCT class_created FROM class_history";
+        pool.query(query, (error, results) => {
+          if (error) {
+            reject(error); // Reject the promise if there's an error
+          } else {
+            resolve(results); // Resolve the promise with the query results
+          }
+        });
+      });
+    };
+
+    // Call the function and handle the promise
+    fetchValidClassNames()
+      .then((results) => {
+        // Handle successful execution and access results here
+        console.log("Query results:", results);
+      })
+      .catch((error) => {
+        // Handle error if the query fails
+        console.error("Error executing query:", error);
+      });
+
+
+    // Initialize an array to store subject names and numbers
+    const subjectsArray = [];
+
+    // Iterate through matching table names and query data from each table
+    for (const table of queryResult) {
+      const tableName = table.class_created;
+
+      // Query to search for enrollment_id in the current table
+      const searchEnrollmentIdQuery = `SELECT * FROM ${tableName} WHERE enrollment_id = ?`;
+
+      // Execute the query to check if the enrollment_id exists in the current table
+      const enrollmentIdResult = await pool.query(searchEnrollmentIdQuery, [
+        enrollment_id,
+      ]);
+
+      // If the enrollment_id exists in the table
+      if (enrollmentIdResult.length > 0) {
+        // Extract the subject name from the table name
+        const subjectName = tableName.split("_").pop();
+
+        // Calculate the sum of columns from fromDateObj to toDateObj
+        // Assuming the columns exist in the table
+        let sum = 0;
+        for (const row of enrollmentIdResult) {
+          // Sum the values in the columns fromDateObj to toDateObj
+          // Adjust this logic according to your database schema
+          sum += row.fromDateObj + row.toDateObj;
+        }
+
+        // Push the subject name and sum to the subjectsArray
+        subjectsArray.push({ tableName, subjectName, sum });
+      }
+    }
+
+    // Send the array of subject names, table names, and numbers as the response
+    res.json(subjectsArray);
+  } catch (error) {
+    console.error("Error fetching graph data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

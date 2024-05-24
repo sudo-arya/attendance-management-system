@@ -67,32 +67,7 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      const buttons = document.querySelectorAll("buttons");
-
-      buttons.forEach((buttons) => {
-        const rect = buttons.getBoundingClientRect();
-        const buttonCenterX = rect.left + rect.width / 2;
-        const buttonCenterY = rect.top + rect.height / 2;
-
-        const deltaX = e.clientX;
-        const deltaY = e.clientY - buttonCenterY;
-
-        const angle = Math.atan2(deltaY, deltaX) * (60 / Math.PI);
-        const facingAngle = angle + 0; // Adjust facing angle
-
-        // Apply the facing angle as a rotation in the Z-axis
-        buttons.style.transform = `rotateZ(${facingAngle}deg)`;
-      });
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
+  
 
   const fetchClassesByEmail = async (email) => {
     try {
