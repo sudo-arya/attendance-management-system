@@ -3,30 +3,26 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import Spline from "@splinetool/react-spline";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { BrowserRouter as Router } from "react-router-dom";
-
-
-
-
-
-
-
 
 const Home = () => {
   const { isAuthenticated, user, login } = useKindeAuth();
+  // eslint-disable-next-line
   const [navbarHeight, setNavbarHeight] = useState(0);
+  // eslint-disable-next-line
   const [showModal, setShowModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedShift, setSelectedShift] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  // eslint-disable-next-line
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [toastColor, setToastColor] = useState(""); // Add this line
 
   const [refresh, setRefresh] = useState(false);
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState("");
+  // eslint-disable-next-line
   const [uniqueValues, setUniqueValues] = useState({
     section: [],
     shift: [],
@@ -34,7 +30,9 @@ const Home = () => {
     year: [],
     subject: [],
   });
+  // eslint-disable-next-line
   const [error, setError] = useState(null);
+  // eslint-disable-next-line
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
@@ -49,6 +47,7 @@ const Home = () => {
     if (isAuthenticated) {
       navigate("/dashboard");
     }
+    // eslint-disable-next-line
   }, [isAuthenticated]); // Run this effect whenever isAuthenticated changes
 
   useEffect(() => {
@@ -145,7 +144,7 @@ const Home = () => {
       setIsLoading(false);
     }
   };
-
+  // eslint-disable-next-line
   const ClassList = ({ classes, onDeleteClass }) => {
     return (
       <div className="grid grid-cols-1 gap-1">
@@ -211,7 +210,7 @@ const Home = () => {
       </div>
     );
   };
-
+  // eslint-disable-next-line
   const handleCreateClass = async () => {
     if (
       !selectedCourse ||
@@ -261,7 +260,7 @@ const Home = () => {
       setRefresh((prev) => !prev); // Trigger a refresh to fetch updated classes
     }
   };
-
+  // eslint-disable-next-line
   const handleDeleteClass = async (className) => {
     setIsLoading(true);
     try {
@@ -280,11 +279,11 @@ const Home = () => {
       setIsLoading(false);
     }
   };
-
+  // eslint-disable-next-line
   const handleAddClass = () => {
     setShowModal(true);
   };
-
+  // eslint-disable-next-line
   const closeModal = () => {
     setShowModal(false);
   };

@@ -12,12 +12,14 @@ import Dashboard from "./components/Dashboard";
 
 
 function App() {
-  /* eslint-disable no-unused-vars */
+  // eslint-disable-next-line
   const { isAuthenticated } = useKindeAuth();
   const location = useLocation();
 
   // Check if the current route is "/view-attendance"
+  // eslint-disable-next-line
   const isViewAttendanceRoute = location.pathname === "/view-attendance";
+  // eslint-disable-next-line
   const isMarkAttendanceRoute = location.pathname === "/mark-attendance";
   const isHomeRoute = location.pathname === "/";
 

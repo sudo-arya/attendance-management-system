@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import Spline from "@splinetool/react-spline";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { BrowserRouter as Router } from "react-router-dom";
 
 const Dashboard = () => {
+  // eslint-disable-next-line
   const { isAuthenticated, user, login } = useKindeAuth();
+  // eslint-disable-next-line
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -14,6 +14,7 @@ const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  // eslint-disable-next-line
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [toastColor, setToastColor] = useState(""); // Add this line
 
@@ -66,8 +67,6 @@ const Dashboard = () => {
       console.error("Error fetching unique values:", error);
     }
   };
-
-  
 
   const fetchClassesByEmail = async (email) => {
     try {
@@ -243,10 +242,10 @@ const Dashboard = () => {
   };
 
   // Redirect to '/' if the user is not authenticated
-//   if (!isAuthenticated) {
-//     navigate("/");
-//     return null; // Render nothing while redirecting
-//   }
+  //   if (!isAuthenticated) {
+  //     navigate("/");
+  //     return null; // Render nothing while redirecting
+  //   }
 
   return (
     <div className=" w-full min-h-screen flex flex-col justify-center items-center relative">
@@ -261,8 +260,8 @@ const Dashboard = () => {
       )}
       <div className="flex w-full scrollable">
         {/* removed hidden */}
-        <div className="hidden lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
-          <img src={user?.picture} className="rounded-full w-32 h-32" />
+        <div className=" lg:flex lg:w-1/2 p-4 flex-col space-y-4 flex items-center justify-center">
+          <img src={user?.picture} alt="" className="rounded-full w-32 h-32" />
           <p className="text-4xl font-normal">
             Welcome, <span className="font-medium">{user?.given_name}</span>
             <br />

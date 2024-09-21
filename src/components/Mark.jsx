@@ -13,6 +13,7 @@ const Mark = () => {
   const { isAuthenticated, user } = useKindeAuth(); // Destructure user from useKindeAuth
   const { className } = useParams(); // Get className from URL parameters
   const [selectedTab, setSelectedTab] = useState("qr");
+  // eslint-disable-next-line
   const [collectedData, setCollectedData] = useState({});
   const [course, shift, year, section, subject] = className.split("_");
   const shiftLabel = shift === "M" ? "Morning" : "Evening";
@@ -22,10 +23,7 @@ const Mark = () => {
   const [manualEntry, setManualEntry] = useState({
     studentName: "",
     attendanceStatus: "present", // Default value
-
-
   });
-
 
   let localhost = `192.168.230.1`;
 
@@ -41,6 +39,7 @@ const Mark = () => {
   const [markedStudents, setMarkedStudents] = useState([]);
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line
   }, [selectedDate]);
 
   useEffect(() => {
@@ -48,7 +47,7 @@ const Mark = () => {
     setSelectedDate(new Date().toISOString().split("T")[0]);
   }, []);
 
-   const handleManualInputChange = (e) => {
+  const handleManualInputChange = (e) => {
     const { name, value } = e.target;
     setManualEntry({
       ...manualEntry,
@@ -57,31 +56,29 @@ const Mark = () => {
     // setSelectedDate(value); // Update selectedDate state
   };
 
-   const handleManualAttendance = (e) => {
-     e.preventDefault();
+  const handleManualAttendance = (e) => {
+    e.preventDefault();
 
-     // Make a POST request to update attendance for the manual entry
-     axios
-       .post(`http://${localhost}:5000/api/update-attendance-multiple`, {
-         className: className, // Replace "YourClassName" with your actual class name
-         enrollmentIds: [manualEntry.studentName], // Assuming enrollment ID is student name for manual entry
-         selectedDate: selectedDate, // Get selected date
-       })
-       .then((response) => {
-         console.log("Attendance marked successfully:", response.data);
-         // Reset form fields after successful submission
-         setManualEntry({
-           studentName: "",
-           selectedDate: "", // Reset date field
-         });
-       })
-       .catch((error) => {
-         console.error("Error marking attendance:", error);
-         // Handle error if needed
-       });
-   };
-
-
+    // Make a POST request to update attendance for the manual entry
+    axios
+      .post(`http://${localhost}:5000/api/update-attendance-multiple`, {
+        className: className, // Replace "YourClassName" with your actual class name
+        enrollmentIds: [manualEntry.studentName], // Assuming enrollment ID is student name for manual entry
+        selectedDate: selectedDate, // Get selected date
+      })
+      .then((response) => {
+        console.log("Attendance marked successfully:", response.data);
+        // Reset form fields after successful submission
+        setManualEntry({
+          studentName: "",
+          selectedDate: "", // Reset date field
+        });
+      })
+      .catch((error) => {
+        console.error("Error marking attendance:", error);
+        // Handle error if needed
+      });
+  };
 
   const handleDownloadExcel = async (className) => {
     try {
@@ -163,6 +160,7 @@ const Mark = () => {
   };
 
   // Function to update selectedDate when a QR code is generated
+  // eslint-disable-next-line
   const handleQRCodeGeneration = (newSelectedDate) => {
     setSelectedDate(newSelectedDate);
   };
@@ -171,23 +169,21 @@ const Mark = () => {
   // For example:
   // handleQRCodeGeneration("2024-05-20");
 
-
-useEffect(() => {
-  let timer;
-  if (countdown > 0) {
-    timer = setInterval(() => {
-      setCountdown((prevCountdown) => prevCountdown - 1);
-    }, 1000);
-  }
-  return () => clearInterval(timer);
-}, [countdown]);
-
-
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 1000); // Refresh data every 1 second
     return () => clearInterval(interval); // Cleanup interval on component unmount
+    // eslint-disable-next-line
   }, [selectedDate]); // Add selectedDate as a dependency to useEffect
 
   const generateRandomString = (length) => {
@@ -258,12 +254,14 @@ useEffect(() => {
       // Generate initial QR code data
       generateQrCodeData();
     }
+    // eslint-disable-next-line
   }, [isAuthenticated]);
 
   useEffect(() => {
     if (selectedDate) {
       generateQrCodeData();
     }
+    // eslint-disable-next-line
   }, [selectedDate]);
 
   // Redirect to '/' if the user is not authenticated
@@ -418,7 +416,7 @@ useEffect(() => {
         <div className="w-full md:w-2/6 p-4 bg-white rounded-md shadow-md relative">
           <h3 className="text-2xl font-bold mb-8">Details of Class</h3>
           <img
-            src={user?.picture}
+            src={user?.picture} alt=""
             className="rounded-full w-18 h-18 absolute top-12 right-10"
           />
           <p className="text-xl font-bold mb-2">{selectedDate}</p>

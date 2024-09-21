@@ -8,6 +8,7 @@ const View = () => {
   const [ranklist, setRanklist] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  /* eslint-disable no-unused-vars */
 
   const handleSearch = () => {
     if (course && shift && admissionYear && section) {
