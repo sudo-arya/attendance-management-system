@@ -12,7 +12,7 @@ import Dashboard from "./components/Dashboard";
 
 
 function App() {
-  /* eslint-disable */
+  /* eslint-disable no-unused-vars */
   const { isAuthenticated } = useKindeAuth();
   const location = useLocation();
 
