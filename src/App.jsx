@@ -5,14 +5,14 @@ import Home from "./components/Home";
 import View from "./components/View";
 import Mark from "./components/Mark";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import DemoComponent from "./components/DemoComponent";
+
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import Dashboard from "./components/Dashboard";
 // import { KindeProvider, useAuth } from "@kinde-oss/kinde-auth-react";
 
 
 function App() {
+  /* eslint-disable */
   const { isAuthenticated } = useKindeAuth();
   const location = useLocation();
 
