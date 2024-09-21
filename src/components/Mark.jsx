@@ -17,7 +17,7 @@ const Mark = () => {
   const [course, shift, year, section, subject] = className.split("_");
   const shiftLabel = shift === "M" ? "Morning" : "Evening";
   const [totalStudents, setTotalStudents] = useState(0);
-  const [countdown, setCountdown] = useState(9);
+  const [countdown, setCountdown] = useState(30);
 
   const [manualEntry, setManualEntry] = useState({
     studentName: "",
@@ -203,7 +203,7 @@ useEffect(() => {
   };
 
   const generateQrCodeData = () => {
-    setCountdown(9); // Reset countdown timer
+    setCountdown(30); // Reset countdown timer
     const randomString = generateRandomString(6);
     const qrData = `${course}-${shift}-${year}-${section}-${subject}/${selectedDate}/${randomString}`;
 

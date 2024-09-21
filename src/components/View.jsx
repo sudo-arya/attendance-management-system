@@ -1,319 +1,212 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
 
 const View = () => {
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastColor, setToastColor] = useState("");
-  const [responseData, setResponseData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedDate1, setSelectedDate1] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [selectedDate2, setSelectedDate2] = useState(
-    new Date(new Date().setDate(new Date().getDate() - 1))
-      .toISOString()
-      .split("T")[0]
-  );
-  const [uniqueValues, setUniqueValues] = useState({
-    course: [],
-    year: [],
-  });
+  const [course, setCourse] = useState("");
+  const [shift, setShift] = useState("");
+  const [admissionYear, setAdmissionYear] = useState("");
+  const [section, setSection] = useState("");
+  const [ranklist, setRanklist] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    let timer;
-    if (toastMessage) {
-      timer = setTimeout(() => {
-        setToastMessage("");
-      }, 2000);
-    }
+  const handleSearch = () => {
+    if (course && shift && admissionYear && section) {
+      let fetchedData = [
+        { enrollment_no: "314902021", name: "Nishant", attendance: "17%" },
+        { enrollment_no: "514902021", name: "Bhumika", attendance: "33%" },
+        { enrollment_no: "1614902021", name: "Sarthak", attendance: "50%" },
+        { enrollment_no: "3014902021", name: "Pd", attendance: "17%" },
+        { enrollment_no: "4014902021", name: "Deepanshu", attendance: "83%" },
+        { enrollment_no: "5414902021", name: "Anshika", attendance: "0%" },
+        { enrollment_no: "6514902021", name: "Noor", attendance: "66%" },
+        { enrollment_no: "7514902021", name: "Abhishek", attendance: "50%" },
+        { enrollment_no: "8214902021", name: "Rohan", attendance: "0%" },
+        { enrollment_no: "8614902021", name: "Aadil", attendance: "50%" },
+        { enrollment_no: "8814902021", name: "Nikita", attendance: "0%" },
+        { enrollment_no: "9414902021", name: "Shivodit", attendance: "17%" },
+      ];
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [toastMessage]);
+      fetchedData.sort(
+        (a, b) => parseFloat(b.attendance) - parseFloat(a.attendance)
+      );
 
-  useEffect(() => {
-    fetchUniqueValues();
-  }, []);
+      const tableRows = fetchedData.map((student, index) => (
+        <tr
+          key={index}
+          onClick={() => handleRowClick(student)}
+          className="cursor-pointer hover:bg-gray-200"
+        >
+          <td className="px-4 py-2 border">{student.enrollment_no}</td>
+          <td className="px-4 py-2 border">{student.name}</td>
+          <td className="px-4 py-2 border">{student.attendance}</td>
+        </tr>
+      ));
 
-  const fetchUniqueValues = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/unique-values");
-      setUniqueValues(response.data);
-    } catch (error) {
-      console.error("Error fetching unique values:", error);
+      setRanklist(tableRows);
+    } else {
+      setRanklist("Please select all the options before searching.");
     }
   };
 
-  const handleModalOpen = (item) => {
-    setSelectedItem(item);
+  const handleRowClick = (student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
   };
 
-  const handleModalClose = () => {
-    setSelectedItem(null);
-  };
-
-
-
-
-const handleGraphDataRequest = async (selectedItem) => {
-  try {
-    const response = await axios.post("http://localhost:5000/graph-data", {
-      enrollment_id: selectedItem.enrollment_id,
-      course: selectedItem.course,
-      shift: selectedItem.shift,
-      section: selectedItem.section,
-      year: selectedItem.year,
-    });
-    console.log("Graph data response:", response.data);
-    // Handle the response as needed
-  } catch (error) {
-    console.error("Error sending graph data request:", error);
-    // Handle errors
-  }
-};
-
-
-
-
-
-
-  const handleSearch = async () => {
-    if (!selectedCourse || !selectedYear) {
-      setToastMessage("Please fill in all required fields.");
-      setToastColor("bg-red-500");
-      return;
-    }
-
-    try {
-      const response = await axios.post("http://localhost:5000/search", {
-        selectedCourse,
-        selectedYear,
-        fromDate: selectedDate1,
-        toDate: selectedDate2,
-      });
-      console.log("Search result:", response.data);
-      setResponseData(response.data);
-    } catch (error) {
-      console.error("Error searching:", error);
-      if (error.response) {
-        if (error.response.status === 400) {
-          setToastMessage(
-            "Bad Request: Please check your input and try again."
-          );
-        } else if (error.response.status === 500) {
-          setToastMessage("Internal Server Error: Please try again later.");
-        } else {
-          setToastMessage("An error occurred. Please try again later.");
-        }
-        setToastColor("bg-red-500");
-      } else if (
-        error.message ===
-        "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
-      ) {
-        setToastMessage(
-          "An error occurred. Please check your network connection and try again."
-        );
-        setToastColor("bg-red-500");
-      } else {
-        setToastMessage("An error occurred. Please try again later.");
-        setToastColor("bg-red-500");
-      }
-    }
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
   };
 
   return (
-    <div className="container mx-auto px-4 scrollable">
-      {toastMessage && (
-        <div className={`toast-top ${toastColor}`}>{toastMessage}</div>
-      )}
-      <h1 className="text-2xl font-bold text-center my-4">View Attendance</h1>
-      <div className="flex flex-col md:flex-row md:justify-between items-center my-4">
-        <div className="w-full md:w-1/4 md:mr-2 mb-2 md:mb-0">
-          <select
-            className="w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-          >
-            <option value="">Select Course</option>
-            {uniqueValues.course.map((course) => (
-              <option key={course} value={course}>
-                {course}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="w-full md:w-1/4 md:mr-2 mb-2 md:mb-0">
-          <select
-            className="w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            <option value="">Select Year</option>
-            {uniqueValues.year.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="w-full md:w-1/4 md:mr-2 mb-2 md:mb-0">
-          <input
-            type="date"
-            value={selectedDate1}
-            className="w-full px-2 py-1 border rounded-md focus:outline-none focus:border-blue-500"
-            onChange={(e) => setSelectedDate1(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-1/4 mb-2 md:mb-0">
-          <input
-            type="date"
-            value={selectedDate2}
-            className="w-full px-2 py-1 border rounded-md focus:outline-none focus:border-blue-500"
-            onChange={(e) => setSelectedDate2(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-1/4 flex justify-center">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-28 rounded focus:outline-none focus:shadow-outline"
-            onClick={handleSearch}
-          >
-            Search
-          </button>
-        </div>
+    <div className="container mx-auto p-4 text-center">
+      <h1 className="text-2xl font-bold mb-4">Attendance Sheet</h1>
+      <h3 className="text-lg mb-8">Maharaja Surajmal Institute</h3>
+      <div className="flex justify-center items-center space-x-4 mb-6">
+        <select
+          value={course}
+          onChange={(e) => setCourse(e.target.value)}
+          className="px-4 py-2 border rounded"
+        >
+          <option value="" disabled selected hidden>
+            Course
+          </option>
+          <option value="BCA">BCA</option>
+          <option value="B.Ed.">B.Ed.</option>
+          <option value="B.Com.(Hons.)">B.Com.(Hons.)</option>
+          <option value="BBA (B&I)">BBA (B&I)</option>
+          <option value="BBA (General)">BBA (General)</option>
+          <option value="BBA-LLB">BBA-LLB</option>
+          <option value="BA-LLB">BA-LLB</option>
+          <option value="MBA">MBA</option>
+        </select>
+        <select
+          value={shift}
+          onChange={(e) => setShift(e.target.value)}
+          className="px-4 py-2 border rounded"
+        >
+          <option value="" disabled selected hidden>
+            Shift
+          </option>
+          <option value="Morning">Morning</option>
+          <option value="Evening">Evening</option>
+        </select>
+        <select
+          value={admissionYear}
+          onChange={(e) => setAdmissionYear(e.target.value)}
+          className="px-4 py-2 border rounded"
+        >
+          <option value="" disabled selected hidden>
+            Admission Year
+          </option>
+          <option value="2022">2022</option>
+          <option value="2021">2021</option>
+          <option value="2020">2020</option>
+          <option value="2019">2019</option>
+        </select>
+        <select
+          value={section}
+          onChange={(e) => setSection(e.target.value)}
+          className="px-4 py-2 border rounded"
+        >
+          <option value="" disabled selected hidden>
+            Section
+          </option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+        <button
+          onClick={handleSearch}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
       </div>
-      {isLoading && <p>Loading...</p>}
-      {error && <p>Error: {error}</p>}
-      <div className="list w-5/6 items-center justify-center mx-auto">
-        <ul className="divide-y divide-gray-200">
-          <div className="flex py-4 px-4 shadow-md rounded-lg mb-2 items-center space-x-4 bg-gray-800">
-            <div className="flex-1 grid grid-cols-6 gap-4">
-              <span className="font-semibold text-white">enrollment_id</span>
-              <span className="font-semibold text-white">name</span>
-              <span className="font-semibold text-white">section</span>
-              <span className="font-semibold text-white">shift</span>
-              <span className="font-semibold text-white">course</span>
-              <span className="font-semibold text-white">year</span>
-            </div>
-          </div>
-          {responseData.map((item, index) => (
-            <li
-              key={index}
-              className="py-4 px-4 bg-white shadow-md rounded-lg mb-2 hover:bg-gray-100 cursor-pointer"
-              onClick={() => {
-                handleGraphDataRequest(item);
-                handleModalOpen(item); // Assuming you still want to open the modal
-              }}
-            >
-              <div className="flex items-center space-x-4">
-                <div className="flex-1 grid grid-cols-6 gap-4">
-                  <span className="font-semibold text-gray-900">
-                    {item.enrollment_id}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    {item.name}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    {item.section}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    {item.shift}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    {item.course}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    {item.year}
-                  </span>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+      <div className="border p-6 rounded bg-gray-100">
+        {ranklist ? (
+          <table className="table-auto w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border">Enrollment Number</th>
+                <th className="px-4 py-2 border">Name</th>
+                <th className="px-4 py-2 border">Total Attendance</th>
+              </tr>
+            </thead>
+            <tbody>{ranklist}</tbody>
+          </table>
+        ) : (
+          <p>Make your selections and click on Search to load the Ranklist.</p>
+        )}
       </div>
-      {selectedItem && (
-        <div className="fixed z-10 inset-0 overflow-y-auto ">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span
-              className="hidden sm:inline-block sm:align-middle sm:h-screen"
-              aria-hidden="true"
+
+      {isModalOpen && selectedStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+            <h2 className="text-xl font-bold mb-4 text-left">
+              Student Details
+            </h2>
+            <p className="text-left">
+              <strong>Name:</strong> {selectedStudent.name}
+            </p>
+            <p className="text-left">
+              <strong>Enrollment Number:</strong>{" "}
+              {selectedStudent.enrollment_no}
+            </p>
+            <p className="text-left">
+              <strong>Course:</strong> {course}
+            </p>
+            <p className="text-left">
+              <strong>Shift:</strong> {shift}
+            </p>
+            <p className="text-left">
+              <strong>Admission Batch:</strong> {admissionYear}
+            </p>
+            <p className="text-left">
+              <strong>Section:</strong> {section}
+            </p>
+            <p className="text-left">
+              <strong>Total Attendance:</strong> {selectedStudent.attendance}
+            </p>
+
+            <h3 className="text-lg font-bold mt-4 text-left">
+              Subject-wise Attendance
+            </h3>
+            <table className="table-auto w-full mt-2">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 border text-left">Subject</th>
+                  <th className="px-4 py-2 border text-left">Attendance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="px-4 py-2 border text-left">IOT</td>
+                  <td className="px-4 py-2 border text-left">50%</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border text-left">CN</td>
+                  <td className="px-4 py-2 border text-left">50%</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border text-left">ECOMMERCE</td>
+                  <td className="px-4 py-2 border text-left">50%</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border text-left">MPR</td>
+                  <td className="px-4 py-2 border text-left">50%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <button
+              onClick={closeModal}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              &#8203;
-            </span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h1 className="text-xl leading-6 font-bold text-gray-900 mb-1">
-                      Attendance Sheet
-                    </h1>
-                    <hr className="w-full mb-3" />
-
-                    {error && <p className="text-red-500">{error}</p>}
-                    <div className="flex flex-col justify-center">
-                      <span>
-                        <span className="font-bold">Enrollment Number : </span>
-                        {selectedItem.enrollment_id}
-                      </span>
-                      <span>
-                        <span className="font-bold">Name : </span>{" "}
-                        {selectedItem.name}
-                      </span>
-                      <span>
-                        <span className="font-bold">Course : </span>{" "}
-                        {selectedItem.course}
-                      </span>
-                      <span>
-                        <span className="font-bold">Shift : </span>{" "}
-                        {selectedItem.shift}
-                      </span>
-                      <span>
-                        <span className="font-bold">Section : </span>
-                        {selectedItem.section}
-                      </span>
-                      <span>
-                        <span className="font-bold">Year : </span>{" "}
-                        {selectedItem.year}
-                      </span>
-                    </div>
-
-                    <ul className="divide-y divide-gray-200 mt-2">
-                      <div className="flex py-2 px-4 shadow-md rounded-lg mb-2 items-center space-x-4 bg-gray-800">
-                        <div className="flex-1 grid grid-cols-1 gap-6 items-center justify-center">
-                          {/* <span className="font-semibold text-white">Subject</span> */}
-                          <span className="font-semibold text-white items-center justify-center flex">
-                            Attendance
-                          </span>
-                        </div>
-                      </div>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  onClick={handleModalClose}
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+              Close
+            </button>
           </div>
         </div>
       )}
-      <div className="list h-32" style={{ backgroundColor: "white" }}>
-        &nbsp;
-      </div>
     </div>
   );
 };

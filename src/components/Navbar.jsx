@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate ,useLocation} from "react-router-dom";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { Link } from "react-router-dom";
 
@@ -22,6 +22,11 @@ const Navbar = () => {
     navigate("/view-attendance");
   };
 
+
+  const location = useLocation();
+
+
+  
   const handleSignIn = () => {
     if (isAuthenticated) {
       navigate("/dashboard");
@@ -46,12 +51,14 @@ const Navbar = () => {
           </span>
         </Link>
         <div className="flex items-center space-x-4">
-          <button
-            onClick={handleViewAttendanceClick}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
-          >
-            View Attendance
-          </button>
+          {location.pathname !== "/view-attendance" && (
+            <button
+              onClick={handleViewAttendanceClick}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
+            >
+              View Attendance
+            </button>
+          )}
           {isAuthenticated ? (
             <button
               onClick={handleSignOut}
